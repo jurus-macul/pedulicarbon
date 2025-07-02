@@ -160,7 +160,7 @@ func (c *MotokoClient) createAgent() (*agentgo.Agent, error) {
 		return nil, fmt.Errorf("failed to create identity: %v", err)
 	}
 
-	// Create agent
+	// Create agent with custom host configuration
 	ag, err := agentgo.New(agentgo.Config{
 		Identity: id,
 	})
