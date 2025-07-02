@@ -1,0 +1,538 @@
+openapi: 3.0.3
+info:
+  title: PeduliCarbon API
+  version: 1.0.0
+  description: API untuk platform PeduliCarbon (Go + Motoko/ICP)
+servers:
+  - url: http://localhost:8080
+paths:
+  /auth/register:
+    post:
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /auth/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/{id}:
+    get:
+      summary: Get user profile
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /missions:
+    get:
+      summary: List all missions
+      responses:
+        '200':
+          description: List of missions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Mission'
+    post:
+      summary: Create mission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Mission'
+      responses:
+        '201':
+          description: Mission created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mission'
+  /missions/{id}:
+    get:
+      summary: Get mission detail
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Mission detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mission'
+  /missions/{id}/take:
+    post:
+      summary: Take mission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MissionTaken'
+      responses:
+        '201':
+          description: Mission taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionTaken'
+  /users/{user_id}/missions:
+    get:
+      summary: List missions taken by user
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: List of missions taken
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MissionTaken'
+  /missions-taken/{id}/proof:
+    post:
+      summary: Submit proof for mission taken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                proof_url:
+                  type: string
+                gps:
+                  type: string
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Proof submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  /missions-taken/{id}/verify:
+    post:
+      summary: Verify mission taken (admin/auto)
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Mission verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  /rewards:
+    post:
+      summary: Create reward
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reward'
+      responses:
+        '201':
+          description: Reward created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reward'
+  /rewards/user/{user_id}:
+    get:
+      summary: Get user rewards
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: List of rewards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reward'
+  /rewards/{id}/status:
+    put:
+      summary: Update reward status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  /wallets/user/{user_id}:
+    get:
+      summary: Get user wallet
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Wallet detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+  /wallets:
+    post:
+      summary: Create wallet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wallet'
+      responses:
+        '201':
+          description: Wallet created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+    put:
+      summary: Update wallet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wallet'
+      responses:
+        '200':
+          description: Wallet updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+  /rewards/catalog:
+    get:
+      summary: List reward catalog
+      responses:
+        '200':
+          description: List of catalog
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RewardCatalog'
+  /rewards/catalog/{id}:
+    get:
+      summary: Get reward catalog detail
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Catalog detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RewardCatalog'
+  /rewards/catalog/{id}/redeem:
+    post:
+      summary: Redeem reward catalog
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Redeemed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  /wallets/withdraw:
+    post:
+      summary: Create withdraw
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Withdraw'
+      responses:
+        '201':
+          description: Withdraw created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Withdraw'
+  /wallets/withdraw/user/{user_id}:
+    get:
+      summary: Get user withdraws
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: List of withdraws
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Withdraw'
+  /wallets/withdraw/{id}/status:
+    put:
+      summary: Update withdraw status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        ii_principal:
+          type: string
+        points:
+          type: integer
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    Mission:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        points:
+          type: integer
+        asset_type:
+          type: string
+        asset_amount:
+          type: number
+        verification_type:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    MissionTaken:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        mission_id:
+          type: integer
+        status:
+          type: string
+        proof_url:
+          type: string
+        gps:
+          type: string
+        verified_at:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    Reward:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        mission_id:
+          type: integer
+        points:
+          type: integer
+        asset_type:
+          type: string
+        asset_amount:
+          type: number
+        status:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    Wallet:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        carbon_nft:
+          type: number
+        points:
+          type: integer
+        rupiah:
+          type: number
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    RewardCatalog:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        points_required:
+          type: integer
+        stock:
+          type: integer
+        type:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    Withdraw:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        amount:
+          type: number
+        status:
+          type: string
+        target:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string 
