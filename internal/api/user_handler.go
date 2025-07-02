@@ -6,8 +6,9 @@ import (
 	"pedulicarbon/internal/model"
 	"pedulicarbon/internal/service"
 
+	"os"
+
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 type UserHandler struct {
@@ -25,7 +26,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 	// Selalu isi ii_principal dari env
-	req.IIPrincipal = viper.GetString("ICP_PRINCIPAL_ID")
+	req.IIPrincipal = os.Getenv("ICP_PRINCIPAL_ID")
 	fmt.Printf("[DEBUG] Register user: name=%s, email=%s, principal=%s\n", req.Name, req.Email, req.IIPrincipal)
 	if req.IIPrincipal == "" {
 		fmt.Println("[ERROR] ICP_PRINCIPAL_ID di env kosong!")

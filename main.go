@@ -1,21 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"pedulicarbon/internal/api"
 	"pedulicarbon/internal/model"
 
-	"github.com/spf13/viper"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func main() {
 	// Load env
-	viper.SetConfigFile(".env")
-	_ = viper.ReadInConfig()
+	godotenv.Load(".env")
+	fmt.Println("[DEBUG] ENV ICP_PRINCIPAL_ID:", os.Getenv("ICP_PRINCIPAL_ID"))
+	fmt.Println("[DEBUG] ENV ICP_CANISTER_HOST:", os.Getenv("ICP_CANISTER_HOST"))
+	fmt.Println("[DEBUG] ENV ICP_CANISTER_ID:", os.Getenv("ICP_CANISTER_ID"))
 
-	dsn := "host=" + viper.GetString("DB_HOST") + " user=" + viper.GetString("DB_USER") + " password=" + viper.GetString("DB_PASSWORD") + " dbname=" + viper.GetString("DB_NAME") + " port=" + viper.GetString("DB_PORT") + " sslmode=disable"
+	dsn := "host=" + os.Getenv("DB_HOST") + " user=" + os.Getenv("DB_USER") + " password=" + os.Getenv("DB_PASSWORD") + " dbname=" + os.Getenv("DB_NAME") + " port=" + os.Getenv("DB_PORT") + " sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("failed to connect database: ", err)
@@ -25,7 +29,7 @@ func main() {
 
 	r := api.InitRouter(db)
 
-	port := viper.GetString("PORT")
+	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
