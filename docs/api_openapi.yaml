@@ -2,64 +2,206 @@ openapi: 3.0.3
 info:
   title: PeduliCarbon API
   version: 1.0.0
-  description: API untuk platform PeduliCarbon (Go + Motoko/ICP)
+  description: |
+    # PeduliCarbon API Documentation
+    
+    API untuk platform PeduliCarbon - Carbon Offset NFT Platform yang terintegrasi dengan Internet Computer (ICP) blockchain.
+    
+    ## Overview
+    Platform ini memungkinkan user untuk:
+    - Mendaftar dan login dengan Internet Identity (ICP)
+    - Mengambil dan menyelesaikan misi ramah lingkungan
+    - Mendapatkan NFT Karbon sebagai reward
+    - Menukar poin dengan hadiah
+    
+    ## Authentication
+    Platform menggunakan email-based authentication dengan principal platform yang disimpan di database. User principal otomatis diassign dari environment variable untuk verifikasi aksi blockchain.
+    
+    ## Base URL
+    - Development: `http://localhost:8080`
+    - Production: `https://api.pedulicarbon.com`
+    
+    ## Error Responses
+    Semua error responses mengikuti format:
+    ```json
+    {
+      "error": "Error message description"
+    }
+    ```
+    
+    ## Rate Limiting
+    - 100 requests per minute per IP
+    - 1000 requests per hour per user
+    
+  contact:
+    name: PeduliCarbon Support
+    email: support@pedulicarbon.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
 servers:
   - url: http://localhost:8080
+    description: Development server
+  - url: https://api.pedulicarbon.com
+    description: Production server
+
 paths:
-  /auth/register:
-    post:
-      summary: Register user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Check if the API server is running
       responses:
-        '201':
-          description: User registered
+        '200':
+          description: Server is healthy
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-  /auth/login:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-07-02T23:30:00Z"
+
+  /auth/register:
     post:
-      summary: Login user
+      summary: Register new user
+      description: |
+        Register a new user with email-based authentication.
+        User akan otomatis mendapatkan platform principal dari environment variable.
+      tags:
+        - Authentication
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  description: Full name of the user
+                  example: "John Doe"
+                email:
+                  type: string
+                  format: email
+                  description: User email address
+                  example: "john@example.com"
+                password:
+                  type: string
+                  description: User password
+                  example: "password123"
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User registered successfully"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: User login
+      description: Login user dengan email
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
               properties:
                 email:
                   type: string
+                  format: email
+                  description: User email address
+                  example: "john@example.com"
       responses:
         '200':
-          description: User profile
+          description: Login successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-  /users/{id}:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Login successful"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/profile/{id}:
     get:
       summary: Get user profile
+      description: Get detailed user profile including points and ICP principal
+      tags:
+        - Users
       parameters:
         - in: path
           name: id
+          required: true
           schema:
             type: integer
-          required: true
+          description: User ID
+          example: 1
       responses:
         '200':
-          description: User profile
+          description: User profile retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /missions:
     get:
       summary: List all missions
+      description: Get all available missions
+      tags:
+        - Missions
       responses:
         '200':
           description: List of missions
@@ -70,93 +212,316 @@ paths:
                 items:
                   $ref: '#/components/schemas/Mission'
     post:
-      summary: Create mission
+      summary: Create new mission
+      description: Create a new mission (admin only)
+      tags:
+        - Missions
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Mission'
+              $ref: '#/components/schemas/MissionCreate'
       responses:
         '201':
-          description: Mission created
+          description: Mission created successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Mission'
+        '400':
+          description: Invalid mission data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /missions/{id}:
     get:
       summary: Get mission detail
+      description: Get detailed information about a specific mission
+      tags:
+        - Missions
       parameters:
         - in: path
           name: id
+          required: true
           schema:
             type: integer
-          required: true
+          description: Mission ID
+          example: 1
       responses:
         '200':
-          description: Mission detail
+          description: Mission details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Mission'
+        '404':
+          description: Mission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /missions/{id}/take:
     post:
       summary: Take mission
+      description: User takes a mission to complete
+      tags:
+        - Missions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Mission ID
+          example: 1
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MissionTaken'
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: integer
+                  description: User ID taking the mission
+                  example: 1
       responses:
         '201':
-          description: Mission taken
+          description: Mission taken successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MissionTaken'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Mission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /missions/{id}/submit-proof:
+    post:
+      summary: Submit proof for mission
+      description: Submit proof (photo, GPS) for mission completion
+      tags:
+        - Missions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Mission ID
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - proof_url
+                - gps
+              properties:
+                user_id:
+                  type: integer
+                  description: User ID submitting proof
+                  example: 1
+                proof_url:
+                  type: string
+                  format: uri
+                  description: URL to proof image/document
+                  example: "https://example.com/proof.jpg"
+                gps:
+                  type: string
+                  description: GPS coordinates
+                  example: "-6.2088,106.8456"
+      responses:
+        '200':
+          description: Proof submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "proof submitted"
+        '400':
+          description: Invalid proof data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /missions/{id}/verify:
+    post:
+      summary: Verify mission completion
+      description: |
+        Verify mission completion and mint NFT.
+        This will:
+        1. Verify action on ICP canister
+        2. Mint NFT to user
+        3. Update user points
+        4. Update mission status
+      tags:
+        - Missions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Mission ID
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: integer
+                  description: User ID to verify
+                  example: 1
+      responses:
+        '200':
+          description: Mission verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "mission verified"
+        '400':
+          description: Verification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /users/{user_id}/missions:
     get:
-      summary: List missions taken by user
+      summary: Get user missions
+      description: Get all missions taken by a specific user
+      tags:
+        - Users
       parameters:
         - in: path
           name: user_id
+          required: true
           schema:
             type: integer
-          required: true
+          description: User ID
+          example: 1
       responses:
         '200':
-          description: List of missions taken
+          description: User missions
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/MissionTaken'
-  /missions-taken/{id}/proof:
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{user_id}/nfts:
+    get:
+      summary: Get user NFTs
+      description: Get all NFTs owned by a specific user
+      tags:
+        - NFTs
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+          example: 1
+      responses:
+        '200':
+          description: User NFTs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nfts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserNFT'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /nfts/{nft_id}/claim:
     post:
-      summary: Submit proof for mission taken
+      summary: Claim NFT
+      description: |
+        Claim NFT and burn it on ICP canister.
+        This will:
+        1. Burn NFT on ICP canister
+        2. Update NFT status to "claimed"
+        3. Generate certificate
+      tags:
+        - NFTs
+      parameters:
+        - in: path
+          name: nft_id
+          required: true
+          schema:
+            type: string
+          description: NFT ID
+          example: "NFT-1751498819"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - user_id
+                - certificate_url
               properties:
-                proof_url:
+                user_id:
+                  type: integer
+                  description: User ID claiming the NFT
+                  example: 1
+                certificate_url:
                   type: string
-                gps:
-                  type: string
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
+                  format: uri
+                  description: URL to certificate document
+                  example: "https://example.com/certificate.pdf"
       responses:
         '200':
-          description: Proof submitted
+          description: NFT claimed successfully
           content:
             application/json:
               schema:
@@ -164,243 +529,121 @@ paths:
                 properties:
                   status:
                     type: string
-  /missions-taken/{id}/verify:
-    post:
-      summary: Verify mission taken (admin/auto)
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Mission verified
+                    example: "NFT claimed & burned"
+        '400':
+          description: Claim failed
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-  /rewards:
+                $ref: '#/components/schemas/Error'
+
+  /rewards/catalog:
     post:
-      summary: Create reward
+      summary: Create reward catalog
+      description: Create a new reward catalog item (admin only)
+      tags:
+        - Rewards
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Reward'
+              $ref: '#/components/schemas/RewardCatalogCreate'
       responses:
         '201':
-          description: Reward created
+          description: Reward catalog created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Reward'
+                $ref: '#/components/schemas/RewardCatalog'
+        '400':
+          description: Invalid reward data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /rewards/catalog/{id}/redeem:
+    post:
+      summary: Redeem reward
+      description: |
+        Redeem a reward using user points.
+        This will:
+        1. Check if user has enough points
+        2. Deduct points from user
+        3. Create reward record
+        4. Update reward stock
+      tags:
+        - Rewards
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Reward catalog ID
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: integer
+                  description: User ID redeeming reward
+                  example: 1
+      responses:
+        '200':
+          description: Reward redeemed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "redeemed"
+        '400':
+          description: Insufficient points or invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /rewards/user/{user_id}:
     get:
       summary: Get user rewards
+      description: Get all rewards redeemed by a specific user
+      tags:
+        - Rewards
       parameters:
         - in: path
           name: user_id
+          required: true
           schema:
             type: integer
-          required: true
+          description: User ID
+          example: 1
       responses:
         '200':
-          description: List of rewards
+          description: User rewards
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Reward'
-  /rewards/{id}/status:
-    put:
-      summary: Update reward status
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                status:
-                  type: string
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Status updated
+        '404':
+          description: User not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-  /wallets/user/{user_id}:
-    get:
-      summary: Get user wallet
-      parameters:
-        - in: path
-          name: user_id
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Wallet detail
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Wallet'
-  /wallets:
-    post:
-      summary: Create wallet
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Wallet'
-      responses:
-        '201':
-          description: Wallet created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Wallet'
-    put:
-      summary: Update wallet
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Wallet'
-      responses:
-        '200':
-          description: Wallet updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Wallet'
-  /rewards/catalog:
-    get:
-      summary: List reward catalog
-      responses:
-        '200':
-          description: List of catalog
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RewardCatalog'
-  /rewards/catalog/{id}:
-    get:
-      summary: Get reward catalog detail
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Catalog detail
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RewardCatalog'
-  /rewards/catalog/{id}/redeem:
-    post:
-      summary: Redeem reward catalog
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Redeemed
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-  /wallets/withdraw:
-    post:
-      summary: Create withdraw
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Withdraw'
-      responses:
-        '201':
-          description: Withdraw created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Withdraw'
-  /wallets/withdraw/user/{user_id}:
-    get:
-      summary: Get user withdraws
-      parameters:
-        - in: path
-          name: user_id
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: List of withdraws
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Withdraw'
-  /wallets/withdraw/{id}/status:
-    put:
-      summary: Update withdraw status
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                status:
-                  type: string
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Status updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
     User:
@@ -408,131 +651,339 @@ components:
       properties:
         id:
           type: integer
+          description: Unique user ID
+          example: 1
         name:
           type: string
+          description: User full name
+          example: "John Doe"
         email:
           type: string
+          format: email
+          description: User email address
+          example: "john@example.com"
         ii_principal:
           type: string
+          description: Internet Identity principal
+          example: "yxsh3-fgghl-hriy4-rd6rn-5tytj-2mbiu-hpxkd-dtnbd-5bzif-6f24l-aqe"
         points:
           type: integer
+          description: User points balance
+          example: 10
         created_at:
           type: string
+          format: date-time
+          description: User creation timestamp
+          example: "2025-07-02T22:55:26.420198Z"
         updated_at:
           type: string
+          format: date-time
+          description: User last update timestamp
+          example: "2025-07-02T23:26:59.485325Z"
+
     Mission:
       type: object
       properties:
         id:
           type: integer
+          description: Unique mission ID
+          example: 1
         title:
           type: string
+          description: Mission title
+          example: "Naik KRL ke Kantor"
         description:
           type: string
-        points:
-          type: integer
+          description: Mission description
+          example: "Pergi ke kantor menggunakan KRL untuk mengurangi emisi karbon"
         asset_type:
           type: string
+          description: Type of asset (NFT, Carbon)
+          example: "NFT"
         asset_amount:
           type: number
+          format: float
+          description: Amount of asset
+          example: 1.5
+        points:
+          type: integer
+          description: Points awarded for mission completion
+          example: 10
         verification_type:
           type: string
+          description: Type of verification required (photo, gps, ocr)
+          example: "photo"
+        status:
+          type: string
+          description: Mission status
+          example: "active"
         created_at:
           type: string
+          format: date-time
+          description: Mission creation timestamp
+          example: "2025-07-02T22:55:26.420198Z"
         updated_at:
           type: string
+          format: date-time
+          description: Mission last update timestamp
+          example: "2025-07-02T22:55:26.420198Z"
+
+    MissionCreate:
+      type: object
+      required:
+        - title
+        - description
+        - asset_type
+        - asset_amount
+        - points
+        - verification_type
+      properties:
+        title:
+          type: string
+          description: Mission title
+          example: "Naik KRL ke Kantor"
+        description:
+          type: string
+          description: Mission description
+          example: "Pergi ke kantor menggunakan KRL untuk mengurangi emisi karbon"
+        asset_type:
+          type: string
+          description: Type of asset (NFT, Carbon)
+          example: "NFT"
+        asset_amount:
+          type: number
+          format: float
+          description: Amount of asset
+          example: 1.5
+        points:
+          type: integer
+          description: Points awarded for mission completion
+          example: 10
+        verification_type:
+          type: string
+          description: Type of verification required (photo, gps, ocr)
+          example: "photo"
+
     MissionTaken:
       type: object
       properties:
         id:
           type: integer
+          description: Unique mission taken ID
+          example: 1
         user_id:
           type: integer
+          description: User ID who took the mission
+          example: 1
         mission_id:
           type: integer
+          description: Mission ID
+          example: 1
         status:
           type: string
+          description: Mission status (taken, proof_submitted, verified)
+          example: "verified"
         proof_url:
           type: string
+          format: uri
+          description: URL to proof document
+          example: "https://example.com/proof.jpg"
         gps:
           type: string
-        verified_at:
-          type: string
+          description: GPS coordinates
+          example: "-6.2088,106.8456"
         created_at:
           type: string
+          format: date-time
+          description: Mission taken timestamp
+          example: "2025-07-02T22:55:26.420198Z"
         updated_at:
           type: string
-    Reward:
+          format: date-time
+          description: Mission taken last update timestamp
+          example: "2025-07-02T23:26:59.485325Z"
+
+    UserNFT:
       type: object
       properties:
         id:
           type: integer
+          description: Unique NFT record ID
+          example: 1
         user_id:
           type: integer
-        mission_id:
-          type: integer
-        points:
-          type: integer
-        asset_type:
+          description: User ID who owns the NFT
+          example: 1
+        nft_id:
           type: string
-        asset_amount:
-          type: number
+          description: NFT ID on ICP blockchain
+          example: "NFT-1751498819"
         status:
           type: string
+          description: NFT status (owned, claimed)
+          example: "owned"
+        claimed_by:
+          type: integer
+          nullable: true
+          description: User ID who claimed the NFT
+          example: 1
+        claimed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: NFT claim timestamp
+          example: "2025-07-02T23:32:31.288384Z"
+        certificate_url:
+          type: string
+          description: URL to certificate document
+          example: "https://example.com/certificate.pdf"
         created_at:
           type: string
-        updated_at:
-          type: string
-    Wallet:
-      type: object
-      properties:
-        id:
-          type: integer
-        user_id:
-          type: integer
-        carbon_nft:
-          type: number
-        points:
-          type: integer
-        rupiah:
-          type: number
-        created_at:
-          type: string
-        updated_at:
-          type: string
+          format: date-time
+          description: NFT creation timestamp
+          example: "2025-07-02T23:26:59.481723Z"
+
     RewardCatalog:
       type: object
       properties:
         id:
           type: integer
+          description: Unique reward catalog ID
+          example: 1
         name:
           type: string
+          description: Reward name
+          example: "Voucher GoPay Rp 50.000"
         description:
           type: string
+          description: Reward description
+          example: "Voucher untuk transaksi GoPay"
         points_required:
           type: integer
+          description: Points required to redeem
+          example: 20
         stock:
           type: integer
+          description: Available stock
+          example: 100
         type:
           type: string
+          description: Reward type (voucher, cash, item)
+          example: "voucher"
+        status:
+          type: string
+          description: Reward status (active, inactive)
+          example: "active"
         created_at:
           type: string
+          format: date-time
+          description: Reward creation timestamp
+          example: "2025-07-02T22:55:26.420198Z"
         updated_at:
           type: string
-    Withdraw:
+          format: date-time
+          description: Reward last update timestamp
+          example: "2025-07-02T22:55:26.420198Z"
+
+    RewardCatalogCreate:
+      type: object
+      required:
+        - name
+        - description
+        - points_required
+        - stock
+        - type
+      properties:
+        name:
+          type: string
+          description: Reward name
+          example: "Voucher GoPay Rp 50.000"
+        description:
+          type: string
+          description: Reward description
+          example: "Voucher untuk transaksi GoPay"
+        points_required:
+          type: integer
+          description: Points required to redeem
+          example: 20
+        stock:
+          type: integer
+          description: Available stock
+          example: 100
+        type:
+          type: string
+          description: Reward type (voucher, cash, item)
+          example: "voucher"
+
+    Reward:
       type: object
       properties:
         id:
           type: integer
+          description: Unique reward ID
+          example: 1
         user_id:
           type: integer
-        amount:
+          description: User ID who redeemed the reward
+          example: 1
+        mission_id:
+          type: integer
+          description: Mission ID (0 if not from mission)
+          example: 0
+        points:
+          type: integer
+          description: Points used for redemption
+          example: 20
+        asset_type:
+          type: string
+          description: Type of asset redeemed
+          example: "certificate"
+        asset_amount:
           type: number
+          format: float
+          description: Amount of asset
+          example: 0
         status:
           type: string
-        target:
-          type: string
+          description: Reward status (redeemed, pending, cancelled)
+          example: "redeemed"
         created_at:
           type: string
+          format: date-time
+          description: Reward redemption timestamp
+          example: "2025-07-02T23:28:05.428751Z"
         updated_at:
-          type: string 
+          type: string
+          format: date-time
+          description: Reward last update timestamp
+          example: "2025-07-02T23:28:05.428751Z"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "User not found"
+
+  securitySchemes:
+    EmailAuth:
+      type: apiKey
+      in: header
+      name: X-User-Email
+      description: User email for authentication
+
+security:
+  - EmailAuth: []
+
+tags:
+  - name: Authentication
+    description: User registration and login
+  - name: Users
+    description: User profile and management
+  - name: Missions
+    description: Mission creation, taking, and verification
+  - name: NFTs
+    description: NFT management and claiming
+  - name: Rewards
+    description: Reward catalog and redemption 
