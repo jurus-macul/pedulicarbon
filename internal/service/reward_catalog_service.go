@@ -24,3 +24,7 @@ func (s *RewardCatalogService) GetCatalog(id uint) (*model.RewardCatalog, error)
 func (s *RewardCatalogService) RedeemCatalog(id uint) error {
 	return s.CatalogRepo.RedeemCatalog(id)
 }
+
+func (s *RewardCatalogService) CreateCatalog(catalog *model.RewardCatalog) error {
+	return s.CatalogRepo.CreateCatalog(catalog)
+}

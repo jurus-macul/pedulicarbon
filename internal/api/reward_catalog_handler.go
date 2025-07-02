@@ -99,3 +99,20 @@ func (h *RewardCatalogHandler) RedeemCatalog(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "redeemed"})
 }
+
+func (h *RewardCatalogHandler) CreateCatalog(c *gin.Context) {
+	var req model.RewardCatalog
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	if req.Name == "" || req.PointsRequired <= 0 || req.Stock < 0 || req.Type == "" {
+		c.JSON(400, gin.H{"error": "Field name, points_required (>0), stock (>=0), type wajib diisi"})
+		return
+	}
+	if err := h.CatalogService.CreateCatalog(&req); err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(201, req)
+}

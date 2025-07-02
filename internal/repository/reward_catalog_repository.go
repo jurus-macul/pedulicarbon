@@ -29,3 +29,7 @@ func (r *RewardCatalogRepository) GetCatalogByID(id uint) (*model.RewardCatalog,
 func (r *RewardCatalogRepository) RedeemCatalog(id uint) error {
 	return r.DB.Model(&model.RewardCatalog{}).Where("id = ? AND stock > 0", id).UpdateColumn("stock", gorm.Expr("stock - 1")).Error
 }
+
+func (r *RewardCatalogRepository) CreateCatalog(catalog *model.RewardCatalog) error {
+	return r.DB.Create(catalog).Error
+}

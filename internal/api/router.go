@@ -77,6 +77,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	r.GET("/rewards/catalog", rewardCatalogHandler.ListCatalog)
 	r.GET("/rewards/catalog/:id", rewardCatalogHandler.GetCatalog)
 	r.POST("/rewards/catalog/:id/redeem", rewardCatalogHandler.RedeemCatalog)
+	r.POST("/rewards/catalog", rewardCatalogHandler.CreateCatalog)
 
 	// Wallet
 	r.GET("/wallets/user/:user_id", walletHandler.GetWallet)

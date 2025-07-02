@@ -78,9 +78,16 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 	}
 	// Tambah point ke user
 	if mission.Points > 0 {
-		if err := s.UserRepo.UpdateUserPoints(user.ID, user.Points+mission.Points); err != nil {
+		// Reload user dari DB untuk dapat point terbaru
+		userLatest, err := s.UserRepo.GetUserByID(user.ID)
+		if err != nil {
 			return err
 		}
+		newPoints := userLatest.Points + mission.Points
+		if err := s.UserRepo.UpdateUserPoints(user.ID, newPoints); err != nil {
+			return err
+		}
+		fmt.Printf("[DEBUG] User %d point updated: %d -> %d\n", user.ID, userLatest.Points, newPoints)
 	}
 	return nil
 }
