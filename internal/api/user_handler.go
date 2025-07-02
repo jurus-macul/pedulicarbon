@@ -52,7 +52,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	var id uint
 	_, err := fmt.Sscanf(userID, "%d", &id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id (profile)"})
 		return
 	}
 	user, err := h.UserService.GetProfile(id)

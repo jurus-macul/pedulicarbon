@@ -45,7 +45,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	// User
 	r.POST("/auth/register", userHandler.Register)
 	r.POST("/auth/login", userHandler.Login)
-	r.GET("/users/:id", userHandler.GetProfile)
+	r.GET("/users/profile/:id", userHandler.GetProfile)
 
 	// Mission
 	r.GET("/missions", missionHandler.ListMissions)
