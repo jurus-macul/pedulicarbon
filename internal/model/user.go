@@ -6,10 +6,10 @@ import (
 
 type User struct {
 	ID          uint      `gorm:"primaryKey" json:"id"`
-	Name        string    `json:"name"`
-	Email       string    `gorm:"unique" json:"email"`
-	IIPrincipal string    `json:"ii_principal"`
-	Points      int       `json:"points"`
+	Name        string    `json:"name" gorm:"not null"`
+	Email       string    `json:"email" gorm:"unique;not null"`
+	IIPrincipal string    `json:"ii_principal" gorm:"not null"`
+	Points      int       `json:"points" gorm:"default:0"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

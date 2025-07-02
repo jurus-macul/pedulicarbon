@@ -3,10 +3,9 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"pedulicarbon/internal/model"
 	"pedulicarbon/internal/service"
-
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,26 +19,44 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 }
 
 func (h *UserHandler) Register(c *gin.Context) {
-	var req model.User
+	var req struct {
+		Name     string `json:"name" binding:"required"`
+		Email    string `json:"email" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	// Selalu isi ii_principal dari env
-	req.IIPrincipal = os.Getenv("ICP_PRINCIPAL_ID")
-	fmt.Printf("[DEBUG] Register user: name=%s, email=%s, principal=%s\n", req.Name, req.Email, req.IIPrincipal)
-	if req.IIPrincipal == "" {
+
+	// Buat user model
+	user := model.User{
+		Name:        req.Name,
+		Email:       req.Email,
+		IIPrincipal: os.Getenv("ICP_PRINCIPAL_ID"),
+		Points:      0,
+	}
+
+	fmt.Printf("[DEBUG] Register user: name=%s, email=%s, principal=%s\n", user.Name, user.Email, user.IIPrincipal)
+
+	if user.IIPrincipal == "" {
 		fmt.Println("[ERROR] ICP_PRINCIPAL_ID di env kosong!")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ii_principal (ICP principal) wajib diisi di env (ICP_PRINCIPAL_ID)"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ICP_PRINCIPAL_ID environment variable is required"})
 		return
 	}
-	if err := h.UserService.RegisterUser(&req); err != nil {
+
+	if err := h.UserService.RegisterUser(&user); err != nil {
 		fmt.Printf("[ERROR] Register user gagal: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Printf("[DEBUG] Register user sukses: id=%d\n", req.ID)
-	c.JSON(http.StatusCreated, req)
+
+	fmt.Printf("[DEBUG] Register user sukses: id=%d\n", user.ID)
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "User registered successfully",
+		"user":    user,
+	})
 }
 
 func (h *UserHandler) Login(c *gin.Context) {
@@ -55,7 +72,10 @@ func (h *UserHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"user":    user,
+	})
 }
 
 func (h *UserHandler) GetProfile(c *gin.Context) {
@@ -64,7 +84,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	var id uint
 	_, err := fmt.Sscanf(userID, "%d", &id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id (profile)"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
 		return
 	}
 	user, err := h.UserService.GetProfile(id)
@@ -72,5 +92,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{
+		"user": user,
+	})
 }
