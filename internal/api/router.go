@@ -6,7 +6,8 @@ import (
 	"pedulicarbon/internal/service"
 
 	// "os"
-	"github.com/spf13/viper"
+
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -28,8 +29,8 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	missionService := service.NewMissionService(missionRepo)
 	rewardService := service.NewRewardService(rewardRepo)
 	walletService := service.NewWalletService(walletRepo)
-	canisterHost := viper.GetString("ICP_CANISTER_HOST")
-	canisterID := viper.GetString("ICP_CANISTER_ID")
+	canisterHost := os.Getenv("ICP_CANISTER_HOST")
+	canisterID := os.Getenv("ICP_CANISTER_ID")
 	motokoClient := motoko.NewMotokoClient(canisterHost, canisterID)
 	missionTakenService := service.NewMissionTakenService(missionTakenRepo, userRepo, missionRepo, motokoClient, userNFTRepo)
 	rewardCatalogService := service.NewRewardCatalogService(rewardCatalogRepo)
