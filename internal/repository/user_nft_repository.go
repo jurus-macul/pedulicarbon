@@ -23,3 +23,13 @@ func (r *UserNFTRepository) GetNFTsByUserID(userID uint) ([]model.UserNFT, error
 	err := r.DB.Where("user_id = ?", userID).Find(&nfts).Error
 	return nfts, err
 }
+
+func (r *UserNFTRepository) UpdateUserNFT(userNFT *model.UserNFT) error {
+	return r.DB.Save(userNFT).Error
+}
+
+func (r *UserNFTRepository) GetUserNFTByNFTID(nftID string) (*model.UserNFT, error) {
+	var userNFT model.UserNFT
+	err := r.DB.Where("nft_id = ?", nftID).First(&userNFT).Error
+	return &userNFT, err
+}

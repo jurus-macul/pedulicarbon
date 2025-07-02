@@ -109,6 +109,23 @@ func (h *MissionTakenHandler) GetUserNFTs(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"nfts": nfts})
 }
 
+func (h *MissionTakenHandler) ClaimNFT(c *gin.Context) {
+	nftID := c.Param("id")
+	var req struct {
+		UserID         uint   `json:"user_id" binding:"required"`
+		CertificateURL string `json:"certificate_url"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.MissionTakenService.ClaimNFT(req.UserID, nftID, req.CertificateURL); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"status": "NFT claimed & burned"})
+}
+
 // containsIgnoreCase helper
 func containsIgnoreCase(s, substr string) bool {
 	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))

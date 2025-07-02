@@ -5,7 +5,8 @@ import (
 	"pedulicarbon/internal/repository"
 	"pedulicarbon/internal/service"
 
-	"os"
+	// "os"
+	"github.com/spf13/viper"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -27,8 +28,8 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	missionService := service.NewMissionService(missionRepo)
 	rewardService := service.NewRewardService(rewardRepo)
 	walletService := service.NewWalletService(walletRepo)
-	canisterHost := os.Getenv("ICP_CANISTER_HOST")
-	canisterID := os.Getenv("ICP_CANISTER_ID")
+	canisterHost := viper.GetString("ICP_CANISTER_HOST")
+	canisterID := viper.GetString("ICP_CANISTER_ID")
 	motokoClient := motoko.NewMotokoClient(canisterHost, canisterID)
 	missionTakenService := service.NewMissionTakenService(missionTakenRepo, userRepo, missionRepo, motokoClient, userNFTRepo)
 	rewardCatalogService := service.NewRewardCatalogService(rewardCatalogRepo)
@@ -40,7 +41,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	rewardHandler := NewRewardHandler(rewardService)
 	walletHandler := NewWalletHandler(walletService)
 	missionTakenHandler := NewMissionTakenHandler(missionTakenService)
-	rewardCatalogHandler := NewRewardCatalogHandler(rewardCatalogService)
+	rewardCatalogHandler := NewRewardCatalogHandler(rewardCatalogService, userService, rewardService)
 	withdrawHandler := NewWithdrawHandler(withdrawService)
 
 	r := gin.Default()
@@ -65,6 +66,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	r.POST("/missions-taken/:id/proof", missionTakenHandler.SubmitProof)
 	r.POST("/missions-taken/:id/verify", missionTakenHandler.VerifyMission)
 	r.GET("/users/:user_id/nfts", missionTakenHandler.GetUserNFTs)
+	r.POST("/nfts/:id/claim", missionTakenHandler.ClaimNFT)
 
 	// Reward
 	r.POST("/rewards", rewardHandler.CreateReward)

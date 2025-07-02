@@ -2,8 +2,8 @@ package motoko
 
 import (
 	"context"
+	"fmt"
 	"net/url"
-	"os"
 
 	agentgo "github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/principal"
@@ -24,7 +24,7 @@ func (c *MotokoClient) VerifyAction(ctx context.Context, userPrincipal string, m
 }
 
 func (c *MotokoClient) MintNFT(ctx context.Context, userPrincipal string, missionID uint, carbonAmount float64) (string, error) {
-	host, _ := url.Parse(os.Getenv("ICP_CANISTER_HOST")) // e.g. http://127.0.0.1:4943
+	host, _ := url.Parse(c.CanisterURL)
 	ag, err := agentgo.New(agentgo.Config{
 		ClientConfig: []agentgo.ClientOption{agentgo.WithHostURL(host)},
 		FetchRootKey: true, // true untuk local dev ICP
@@ -50,7 +50,7 @@ func (c *MotokoClient) MintNFT(ctx context.Context, userPrincipal string, missio
 }
 
 func (c *MotokoClient) GetUserNFTs(ctx context.Context, userPrincipal string) ([]string, error) {
-	host, _ := url.Parse(os.Getenv("ICP_CANISTER_HOST"))
+	host, _ := url.Parse(c.CanisterURL)
 	ag, err := agentgo.New(agentgo.Config{
 		ClientConfig: []agentgo.ClientOption{agentgo.WithHostURL(host)},
 		FetchRootKey: true,
@@ -84,4 +84,29 @@ func (c *MotokoClient) GetNFTDetail(ctx context.Context, nftID string) (map[stri
 		"carbon_amount": 1.2,
 		"timestamp":     1234567890,
 	}, nil
+}
+
+func (c *MotokoClient) BurnNFT(ctx context.Context, nftID string) error {
+	host, _ := url.Parse(c.CanisterURL)
+	ag, err := agentgo.New(agentgo.Config{
+		ClientConfig: []agentgo.ClientOption{agentgo.WithHostURL(host)},
+		FetchRootKey: true,
+	})
+	if err != nil {
+		return err
+	}
+	var result bool
+	err = ag.Call(
+		principal.MustDecode(c.CanisterID),
+		"burn_nft",
+		[]any{nftID},
+		[]any{&result},
+	)
+	if err != nil {
+		return err
+	}
+	if !result {
+		return fmt.Errorf("burn_nft failed on canister")
+	}
+	return nil
 }

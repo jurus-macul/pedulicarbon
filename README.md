@@ -165,4 +165,41 @@ Misal, untuk call candid method (mint_nft), gunakan tools seperti [ic-repl](http
 
 ### Flow Integrasi
 1. **Frontend** → **Go Backend** → **Motoko Canister (Testnet)**
-2. Semua aksi penting (mint NFT, verifikasi) akan tercatat di blockchain ICP testnet. 
+2. Semua aksi penting (mint NFT, verifikasi) akan tercatat di blockchain ICP testnet.
+
+## Contoh API: Create Mission
+
+Endpoint: `POST /missions`
+
+Field wajib:
+- `title` (judul misi)
+- `description` (deskripsi)
+- `asset_type` (misal: NFT, Carbon)
+- `asset_amount` (harus > 0)
+- `verification_type` (misal: photo, gps, ocr)
+
+Jika field kosong/tidak valid, akan return error 400.
+
+### Contoh JSON
+```json
+{
+  "title": "Naik KRL ke kantor",
+  "description": "Pergi ke kantor menggunakan KRL untuk mengurangi emisi karbon.",
+  "asset_type": "NFT",
+  "asset_amount": 1.5,
+  "verification_type": "photo"
+}
+```
+
+### Contoh curl
+```bash
+curl -X POST http://localhost:8080/missions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Naik KRL ke kantor",
+    "description": "Pergi ke kantor menggunakan KRL untuk mengurangi emisi karbon.",
+    "asset_type": "NFT",
+    "asset_amount": 1.5,
+    "verification_type": "photo"
+  }'
+``` 

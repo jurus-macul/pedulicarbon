@@ -3,11 +3,11 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"pedulicarbon/internal/model"
 	"pedulicarbon/internal/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 type UserHandler struct {
@@ -24,11 +24,10 @@ func (h *UserHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// Selalu isi ii_principal dari env
+	req.IIPrincipal = viper.GetString("ICP_PRINCIPAL_ID")
 	if req.IIPrincipal == "" {
-		req.IIPrincipal = os.Getenv("ICP_PRINCIPAL_ID")
-	}
-	if req.IIPrincipal == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ii_principal (ICP principal) wajib diisi atau set ICP_PRINCIPAL_ID di env"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ii_principal (ICP principal) wajib diisi di env (ICP_PRINCIPAL_ID)"})
 		return
 	}
 	if err := h.UserService.RegisterUser(&req); err != nil {

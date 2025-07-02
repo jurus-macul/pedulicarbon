@@ -50,4 +50,18 @@ actor class PeduliCarbon() = this {
     };
     result
   };
+
+  public shared({caller}) func burn_nft(nft_id: Text) : async Bool {
+    var found : Bool = false;
+    let filtered = Array.filter<NFTDetail>(nfts, func (nft) {
+      if (nft.id == nft_id) {
+        found := true;
+        false
+      } else {
+        true
+      }
+    });
+    nfts := filtered;
+    found
+  };
 }

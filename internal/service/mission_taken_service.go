@@ -76,5 +76,34 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 	if err := s.UserNFTRepo.CreateUserNFT(userNFT); err != nil {
 		return err
 	}
+	// Tambah point ke user
+	if mission.Points > 0 {
+		if err := s.UserRepo.UpdateUserPoints(user.ID, user.Points+mission.Points); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+func (s *MissionTakenService) ClaimNFT(userID uint, nftID string, certificateURL string) error {
+	// Ambil user_nft by NFTID
+	userNFT, err := s.UserNFTRepo.GetUserNFTByNFTID(nftID)
+	if err != nil {
+		return fmt.Errorf("NFT tidak ditemukan")
+	}
+	if userNFT.Status != "owned" {
+		return fmt.Errorf("NFT sudah claimed")
+	}
+	// Burn NFT di Motoko
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := s.MotokoClient.BurnNFT(ctx, nftID); err != nil {
+		return err
+	}
+	now := time.Now()
+	userNFT.Status = "claimed"
+	userNFT.ClaimedBy = &userID
+	userNFT.ClaimedAt = &now
+	userNFT.CertificateURL = certificateURL
+	return s.UserNFTRepo.UpdateUserNFT(userNFT)
 }

@@ -47,6 +47,10 @@ func (h *MissionHandler) CreateMission(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if req.Title == "" || req.Description == "" || req.AssetType == "" || req.AssetAmount <= 0 || req.VerificationType == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Field title, description, asset_type, asset_amount (>0), verification_type wajib diisi"})
+		return
+	}
 	if err := h.MissionService.CreateMission(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
