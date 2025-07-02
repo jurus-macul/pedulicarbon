@@ -2,14 +2,20 @@ package motoko
 
 import (
 	"context"
+	"net/url"
+	"os"
+
+	agentgo "github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/principal"
 )
 
 type MotokoClient struct {
 	CanisterURL string
+	CanisterID  string
 }
 
-func NewMotokoClient(canisterURL string) *MotokoClient {
-	return &MotokoClient{CanisterURL: canisterURL}
+func NewMotokoClient(canisterURL, canisterID string) *MotokoClient {
+	return &MotokoClient{CanisterURL: canisterURL, CanisterID: canisterID}
 }
 
 func (c *MotokoClient) VerifyAction(ctx context.Context, userPrincipal string, missionID uint, proofURL, gps string) (bool, error) {
@@ -18,13 +24,55 @@ func (c *MotokoClient) VerifyAction(ctx context.Context, userPrincipal string, m
 }
 
 func (c *MotokoClient) MintNFT(ctx context.Context, userPrincipal string, missionID uint, carbonAmount float64) (string, error) {
-	// Dummy: return NFT ID, siap diisi call HTTP ke canister
-	return "NFT-123", nil
+	host, _ := url.Parse(os.Getenv("ICP_CANISTER_HOST")) // e.g. http://127.0.0.1:4943
+	ag, err := agentgo.New(agentgo.Config{
+		ClientConfig: []agentgo.ClientOption{agentgo.WithHostURL(host)},
+		FetchRootKey: true, // true untuk local dev ICP
+	})
+	if err != nil {
+		return "", err
+	}
+	p, err := principal.Decode(userPrincipal)
+	if err != nil {
+		return "", err
+	}
+	var nftID string
+	err = ag.Call(
+		principal.MustDecode(c.CanisterID),
+		"mint_nft",
+		[]any{p, missionID, carbonAmount},
+		[]any{&nftID},
+	)
+	if err != nil {
+		return "", err
+	}
+	return nftID, nil
 }
 
 func (c *MotokoClient) GetUserNFTs(ctx context.Context, userPrincipal string) ([]string, error) {
-	// Dummy: return list NFT ID
-	return []string{"NFT-123", "NFT-456"}, nil
+	host, _ := url.Parse(os.Getenv("ICP_CANISTER_HOST"))
+	ag, err := agentgo.New(agentgo.Config{
+		ClientConfig: []agentgo.ClientOption{agentgo.WithHostURL(host)},
+		FetchRootKey: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	p, err := principal.Decode(userPrincipal)
+	if err != nil {
+		return nil, err
+	}
+	var nftIDs []string
+	err = ag.Query(
+		principal.MustDecode(c.CanisterID),
+		"get_user_nfts",
+		[]any{p},
+		[]any{&nftIDs},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return nftIDs, nil
 }
 
 func (c *MotokoClient) GetNFTDetail(ctx context.Context, nftID string) (map[string]interface{}, error) {
