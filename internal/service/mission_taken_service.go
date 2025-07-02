@@ -1,16 +1,30 @@
 package service
 
 import (
+	"context"
+	"fmt"
 	"pedulicarbon/internal/model"
+	"pedulicarbon/internal/motoko"
 	"pedulicarbon/internal/repository"
+	"time"
 )
 
 type MissionTakenService struct {
 	MissionTakenRepo *repository.MissionTakenRepository
+	UserRepo         *repository.UserRepository
+	MissionRepo      *repository.MissionRepository
+	MotokoClient     *motoko.MotokoClient
+	UserNFTRepo      *repository.UserNFTRepository
 }
 
-func NewMissionTakenService(repo *repository.MissionTakenRepository) *MissionTakenService {
-	return &MissionTakenService{MissionTakenRepo: repo}
+func NewMissionTakenService(repo *repository.MissionTakenRepository, userRepo *repository.UserRepository, missionRepo *repository.MissionRepository, motokoClient *motoko.MotokoClient, userNFTRepo *repository.UserNFTRepository) *MissionTakenService {
+	return &MissionTakenService{
+		MissionTakenRepo: repo,
+		UserRepo:         userRepo,
+		MissionRepo:      missionRepo,
+		MotokoClient:     motokoClient,
+		UserNFTRepo:      userNFTRepo,
+	}
 }
 
 func (s *MissionTakenService) TakeMission(mt *model.MissionTaken) error {
@@ -26,5 +40,41 @@ func (s *MissionTakenService) UpdateProof(mtID uint, proofURL, gps string) error
 }
 
 func (s *MissionTakenService) VerifyMission(mtID uint) error {
-	return s.MissionTakenRepo.VerifyMission(mtID)
+	// Update status di DB
+	err := s.MissionTakenRepo.VerifyMission(mtID)
+	if err != nil {
+		return err
+	}
+	// Ambil data MissionTaken, User, Mission
+	mt, err := s.MissionTakenRepo.GetByID(mtID)
+	if err != nil {
+		return err
+	}
+	user, err := s.UserRepo.GetUserByID(mt.UserID)
+	if err != nil {
+		return err
+	}
+	if user.IIPrincipal == "" {
+		return fmt.Errorf("user belum punya ii_principal (ICP principal)")
+	}
+	mission, err := s.MissionRepo.GetMissionByID(mt.MissionID)
+	if err != nil {
+		return err
+	}
+	// Mint NFT ke Motoko
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	nftID, err := s.MotokoClient.MintNFT(ctx, user.IIPrincipal, mt.MissionID, mission.AssetAmount)
+	if err != nil {
+		return err
+	}
+	// Simpan mapping NFT ke user
+	userNFT := &model.UserNFT{
+		UserID: user.ID,
+		NFTID:  nftID,
+	}
+	if err := s.UserNFTRepo.CreateUserNFT(userNFT); err != nil {
+		return err
+	}
+	return nil
 }

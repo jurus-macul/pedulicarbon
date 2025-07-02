@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"pedulicarbon/internal/model"
 	"pedulicarbon/internal/service"
 
@@ -21,6 +22,13 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var req model.User
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if req.IIPrincipal == "" {
+		req.IIPrincipal = os.Getenv("ICP_PRINCIPAL_ID")
+	}
+	if req.IIPrincipal == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ii_principal (ICP principal) wajib diisi atau set ICP_PRINCIPAL_ID di env"})
 		return
 	}
 	if err := h.UserService.RegisterUser(&req); err != nil {

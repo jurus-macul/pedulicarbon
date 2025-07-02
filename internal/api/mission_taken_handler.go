@@ -5,6 +5,7 @@ import (
 	"pedulicarbon/internal/model"
 	"pedulicarbon/internal/service"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -75,8 +76,40 @@ func (h *MissionTakenHandler) VerifyMission(c *gin.Context) {
 		return
 	}
 	if err := h.MissionTakenService.VerifyMission(uint(mtID)); err != nil {
+		if err != nil && (err.Error() == "user belum punya ii_principal (ICP principal)" ||
+			containsIgnoreCase(err.Error(), "ii_principal")) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "User belum punya ICP principal (ii_principal). Silakan update profil Anda."})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "mission verified"})
+}
+
+func (h *MissionTakenHandler) GetUserNFTs(c *gin.Context) {
+	userIDStr := c.Param("user_id")
+	userID, err := strconv.ParseUint(userIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+	// Ambil principal user
+	user, err := h.MissionTakenService.UserRepo.GetUserByID(uint(userID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+	ctx := c.Request.Context()
+	nfts, err := h.MissionTakenService.MotokoClient.GetUserNFTs(ctx, user.IIPrincipal)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"nfts": nfts})
+}
+
+// containsIgnoreCase helper
+func containsIgnoreCase(s, substr string) bool {
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }

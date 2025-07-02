@@ -21,7 +21,7 @@ func main() {
 		log.Fatal("failed to connect database: ", err)
 	}
 
-	db.AutoMigrate(&model.User{}, &model.Mission{}, &model.Reward{}, &model.Wallet{}, &model.MissionTaken{}, &model.RewardCatalog{}, &model.Withdraw{})
+	db.AutoMigrate(&model.User{}, &model.Mission{}, &model.Reward{}, &model.Wallet{}, &model.MissionTaken{}, &model.RewardCatalog{}, &model.Withdraw{}, &model.UserNFT{})
 
 	r := api.InitRouter(db)
 

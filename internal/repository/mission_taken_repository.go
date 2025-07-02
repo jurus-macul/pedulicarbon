@@ -32,3 +32,9 @@ func (r *MissionTakenRepository) UpdateProof(mtID uint, proofURL, gps string) er
 func (r *MissionTakenRepository) VerifyMission(mtID uint) error {
 	return r.DB.Model(&model.MissionTaken{}).Where("id = ?", mtID).Updates(map[string]interface{}{"status": "verified", "verified_at": time.Now()}).Error
 }
+
+func (r *MissionTakenRepository) GetByID(id uint) (*model.MissionTaken, error) {
+	var mt model.MissionTaken
+	err := r.DB.First(&mt, id).Error
+	return &mt, err
+}
