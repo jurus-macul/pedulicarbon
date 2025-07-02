@@ -32,12 +32,18 @@ actor class PeduliCarbon() = this {
   };
 
   public query func get_user_nfts(user: Principal) : async [Text] {
-    Array.map<NFTDetail, Text>(nfts.filter(func nft { nft.owner == user }), func nft { nft.id })
+    var result : [Text] = [];
+    for (nft in nfts) {
+      if (nft.owner == user) {
+        result := Array.append(result, [nft.id]);
+      }
+    };
+    result
   };
 
   public query func get_nft_detail(nft_id: Text) : async ?NFTDetail {
     var result : ?NFTDetail = null;
-    for (nft in nfts.vals()) {
+    for (nft in nfts) {
       if (nft.id == nft_id) { result := ?nft }
     };
     result
