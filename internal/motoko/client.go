@@ -19,8 +19,29 @@ func NewMotokoClient(canisterURL, canisterID string) *MotokoClient {
 }
 
 func (c *MotokoClient) VerifyAction(ctx context.Context, userPrincipal string, missionID uint, proofURL, gps string) (bool, error) {
-	// Dummy: always true, siap diisi call HTTP ke canister
-	return true, nil
+	host, _ := url.Parse(c.CanisterURL)
+	ag, err := agentgo.New(agentgo.Config{
+		ClientConfig: []agentgo.ClientOption{agentgo.WithHostURL(host)},
+		FetchRootKey: true, // true untuk local dev ICP
+	})
+	if err != nil {
+		return false, err
+	}
+	p, err := principal.Decode(userPrincipal)
+	if err != nil {
+		return false, err
+	}
+	var result bool
+	err = ag.Call(
+		principal.MustDecode(c.CanisterID),
+		"verify_action",
+		[]any{p, missionID, proofURL, gps},
+		[]any{&result},
+	)
+	if err != nil {
+		return false, err
+	}
+	return result, nil
 }
 
 func (c *MotokoClient) MintNFT(ctx context.Context, userPrincipal string, missionID uint, carbonAmount float64) (string, error) {
