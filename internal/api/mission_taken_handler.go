@@ -19,11 +19,18 @@ func NewMissionTakenHandler(s *service.MissionTakenService) *MissionTakenHandler
 }
 
 func (h *MissionTakenHandler) TakeMission(c *gin.Context) {
+	missionIDStr := c.Param("id")
+	missionID, err := strconv.ParseUint(missionIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid mission id"})
+		return
+	}
 	var req model.MissionTaken
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	req.MissionID = uint(missionID)
 	if err := h.MissionTakenService.TakeMission(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
