@@ -63,8 +63,8 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	// Mission Taken
 	r.POST("/missions/:id/take", missionTakenHandler.TakeMission)
 	r.GET("/users/:user_id/missions", missionTakenHandler.GetUserMissions)
-	r.POST("/missions-taken/:id/proof", missionTakenHandler.SubmitProof)
-	r.POST("/missions-taken/:id/verify", missionTakenHandler.VerifyMission)
+	r.POST("/missions/:id/submit-proof", missionTakenHandler.SubmitProof)
+	r.POST("/missions/:id/verify", missionTakenHandler.VerifyMission)
 	r.GET("/users/:user_id/nfts", missionTakenHandler.GetUserNFTs)
 	r.POST("/nfts/:id/claim", missionTakenHandler.ClaimNFT)
 
