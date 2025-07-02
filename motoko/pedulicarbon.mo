@@ -1,5 +1,7 @@
 import Principal "mo:base/Principal";
 import Time "mo:base/Time";
+import Nat "mo:base/Nat";
+import Array "mo:base/Array";
 
 actor class PeduliCarbon() = this {
   type NFTDetail = {
@@ -30,10 +32,22 @@ actor class PeduliCarbon() = this {
   };
 
   public query func get_user_nfts(user: Principal) : async [Text] {
-    Array.map<NFTDetail, Text>(nfts.filter(func nft { nft.owner == user }), func nft { nft.id })
+    var result : [Text] = [];
+    for (i in nfts.keys()) {
+      let nft = nfts[i];
+      if (nft.owner == user) {
+        result := Array.append(result, [nft.id]);
+      }
+    };
+    result
   };
 
   public query func get_nft_detail(nft_id: Text) : async ?NFTDetail {
-    nfts.find(func nft { nft.id == nft_id })
+    var result : ?NFTDetail = null;
+    for (i in nfts.keys()) {
+      let nft = nfts[i];
+      if (nft.id == nft_id) { result := ?nft }
+    };
+    result
   };
-} 
+}
