@@ -151,6 +151,9 @@ func (c *MotokoClient) createAgent() (*agentgo.Agent, error) {
 		return nil, fmt.Errorf("IDENTITY_PATH environment variable not set")
 	}
 
+	fmt.Printf("[DEBUG] Creating agent with identity: %s, passphrase: %s, host: %s, canister: %s\n",
+		identityPath, passphrase, c.CanisterURL, c.CanisterID)
+
 	// Create identity from PEM
 	id, err := c.createIdentityFromPEM(identityPath, passphrase)
 	if err != nil {
@@ -165,19 +168,28 @@ func (c *MotokoClient) createAgent() (*agentgo.Agent, error) {
 		return nil, fmt.Errorf("failed to create agent: %v", err)
 	}
 
+	fmt.Printf("[DEBUG] Agent created successfully\n")
 	return ag, nil
 }
 
 func (c *MotokoClient) VerifyAction(ctx context.Context, userPrincipal string, missionID uint, proofURL, gps string) (bool, error) {
+	fmt.Printf("[DEBUG] VerifyAction called with user: %s, mission: %d, proof: %s, gps: %s\n",
+		userPrincipal, missionID, proofURL, gps)
+
 	ag, err := c.createAgent()
 	if err != nil {
+		fmt.Printf("[ERROR] Failed to create agent: %v\n", err)
 		return false, err
 	}
 
 	p, err := principal.Decode(userPrincipal)
 	if err != nil {
+		fmt.Printf("[ERROR] Failed to decode principal: %v\n", err)
 		return false, err
 	}
+
+	fmt.Printf("[DEBUG] Calling canister %s with method verify_action\n", c.CanisterID)
+
 	var result bool
 	err = ag.Call(
 		principal.MustDecode(c.CanisterID),
@@ -186,8 +198,11 @@ func (c *MotokoClient) VerifyAction(ctx context.Context, userPrincipal string, m
 		[]any{&result},
 	)
 	if err != nil {
+		fmt.Printf("[ERROR] Canister call failed: %v\n", err)
 		return false, err
 	}
+
+	fmt.Printf("[DEBUG] Canister call successful, result: %v\n", result)
 	return result, nil
 }
 
