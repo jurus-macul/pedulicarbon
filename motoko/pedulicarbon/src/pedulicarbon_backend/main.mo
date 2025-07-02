@@ -33,7 +33,8 @@ actor class PeduliCarbon() = this {
 
   public query func get_user_nfts(user: Principal) : async [Text] {
     var result : [Text] = [];
-    for (nft in nfts) {
+    for (i in nfts.keys()) {
+      let nft = nfts[i];
       if (nft.owner == user) {
         result := Array.append(result, [nft.id]);
       }
@@ -43,7 +44,8 @@ actor class PeduliCarbon() = this {
 
   public query func get_nft_detail(nft_id: Text) : async ?NFTDetail {
     var result : ?NFTDetail = null;
-    for (nft in nfts) {
+    for (i in nfts.keys()) {
+      let nft = nfts[i];
       if (nft.id == nft_id) { result := ?nft }
     };
     result
