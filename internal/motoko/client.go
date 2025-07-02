@@ -154,13 +154,19 @@ func (c *MotokoClient) createAgent() (*agentgo.Agent, error) {
 	fmt.Printf("[DEBUG] Creating agent with identity: %s, passphrase: %s, host: %s, canister: %s\n",
 		identityPath, passphrase, c.CanisterURL, c.CanisterID)
 
+	// Set environment variable for agent-go to use local host
+	if c.CanisterURL != "" && c.CanisterURL != "https://ic0.app" {
+		os.Setenv("IC_HOST", c.CanisterURL)
+		fmt.Printf("[DEBUG] Set IC_HOST environment variable to: %s\n", c.CanisterURL)
+	}
+
 	// Create identity from PEM
 	id, err := c.createIdentityFromPEM(identityPath, passphrase)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create identity: %v", err)
 	}
 
-	// Create agent with custom host configuration
+	// Create agent
 	ag, err := agentgo.New(agentgo.Config{
 		Identity: id,
 	})

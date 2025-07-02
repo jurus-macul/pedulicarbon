@@ -165,7 +165,7 @@ Misal, untuk call candid method (mint_nft), gunakan tools seperti [ic-repl](http
 
 ### Flow Integrasi
 1. **Frontend** → **Go Backend** → **Motoko Canister (Testnet)**
-2. Semua aksi penting (mint NFT, verifikasi) akan tercatat di blockchain ICP testnet.
+2. Semua aksi penting (mint NFT, verifikasi) akan tercatat di blockchain ICP testnet. 
 
 ## Contoh API: Create Mission
 
