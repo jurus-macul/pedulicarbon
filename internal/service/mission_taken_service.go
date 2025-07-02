@@ -101,6 +101,7 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 	userNFT := &model.UserNFT{
 		UserID: user.ID,
 		NFTID:  nftID,
+		Status: "owned",
 	}
 	if err := s.UserNFTRepo.CreateUserNFT(userNFT); err != nil {
 		fmt.Printf("[ERROR] CreateUserNFT error: %v\n", err)
@@ -121,6 +122,19 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 			return err
 		}
 		fmt.Printf("[DEBUG] User %d point updated: %d -> %d\n", user.ID, userLatest.Points, newPoints)
+	} else {
+		// If mission has no points, add default points
+		userLatest, err := s.UserRepo.GetUserByID(user.ID)
+		if err != nil {
+			fmt.Printf("[ERROR] GetUserByID (latest) error: %v\n", err)
+			return err
+		}
+		newPoints := userLatest.Points + 10 // Default 10 points
+		if err := s.UserRepo.UpdateUserPoints(user.ID, newPoints); err != nil {
+			fmt.Printf("[ERROR] UpdateUserPoints error: %v\n", err)
+			return err
+		}
+		fmt.Printf("[DEBUG] User %d point updated (default): %d -> %d\n", user.ID, userLatest.Points, newPoints)
 	}
 
 	fmt.Printf("[DEBUG] Mission verification completed successfully\n")
