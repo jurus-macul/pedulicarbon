@@ -43,22 +43,27 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 	// Update status di DB
 	err := s.MissionTakenRepo.VerifyMission(mtID)
 	if err != nil {
+		fmt.Printf("[ERROR] VerifyMissionRepo error: %v\n", err)
 		return err
 	}
 	// Ambil data MissionTaken, User, Mission
 	mt, err := s.MissionTakenRepo.GetByID(mtID)
 	if err != nil {
+		fmt.Printf("[ERROR] GetByID error: %v\n", err)
 		return err
 	}
 	user, err := s.UserRepo.GetUserByID(mt.UserID)
 	if err != nil {
+		fmt.Printf("[ERROR] GetUserByID error: %v\n", err)
 		return err
 	}
 	if user.IIPrincipal == "" {
+		fmt.Println("[ERROR] user belum punya ii_principal (ICP principal)")
 		return fmt.Errorf("user belum punya ii_principal (ICP principal)")
 	}
 	mission, err := s.MissionRepo.GetMissionByID(mt.MissionID)
 	if err != nil {
+		fmt.Printf("[ERROR] GetMissionByID error: %v\n", err)
 		return err
 	}
 	// Mint NFT ke Motoko
@@ -66,6 +71,7 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 	defer cancel()
 	nftID, err := s.MotokoClient.MintNFT(ctx, user.IIPrincipal, mt.MissionID, mission.AssetAmount)
 	if err != nil {
+		fmt.Printf("[ERROR] MintNFT error: %v\n", err)
 		return err
 	}
 	// Simpan mapping NFT ke user
@@ -74,6 +80,7 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 		NFTID:  nftID,
 	}
 	if err := s.UserNFTRepo.CreateUserNFT(userNFT); err != nil {
+		fmt.Printf("[ERROR] CreateUserNFT error: %v\n", err)
 		return err
 	}
 	// Tambah point ke user
@@ -81,10 +88,12 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 		// Reload user dari DB untuk dapat point terbaru
 		userLatest, err := s.UserRepo.GetUserByID(user.ID)
 		if err != nil {
+			fmt.Printf("[ERROR] GetUserByID (latest) error: %v\n", err)
 			return err
 		}
 		newPoints := userLatest.Points + mission.Points
 		if err := s.UserRepo.UpdateUserPoints(user.ID, newPoints); err != nil {
+			fmt.Printf("[ERROR] UpdateUserPoints error: %v\n", err)
 			return err
 		}
 		fmt.Printf("[DEBUG] User %d point updated: %d -> %d\n", user.ID, userLatest.Points, newPoints)
