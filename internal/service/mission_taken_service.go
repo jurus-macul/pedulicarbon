@@ -40,12 +40,6 @@ func (s *MissionTakenService) UpdateProof(mtID uint, proofURL, gps string) error
 }
 
 func (s *MissionTakenService) VerifyMission(mtID uint) error {
-	// Update status di DB
-	err := s.MissionTakenRepo.VerifyMission(mtID)
-	if err != nil {
-		fmt.Printf("[ERROR] VerifyMissionRepo error: %v\n", err)
-		return err
-	}
 	// Ambil data MissionTaken, User, Mission
 	mt, err := s.MissionTakenRepo.GetByID(mtID)
 	if err != nil {
@@ -66,15 +60,44 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 		fmt.Printf("[ERROR] GetMissionByID error: %v\n", err)
 		return err
 	}
-	// Mint NFT ke Motoko
+
+	// Step 1: Verify Action di Motoko
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	fmt.Printf("[DEBUG] Calling VerifyAction for user: %s, mission: %d, proof: %s, gps: %s\n",
+		user.IIPrincipal, mt.MissionID, mt.ProofURL, mt.GPS)
+
+	verified, err := s.MotokoClient.VerifyAction(ctx, user.IIPrincipal, mt.MissionID, mt.ProofURL, mt.GPS)
+	if err != nil {
+		fmt.Printf("[ERROR] VerifyAction error: %v\n", err)
+		return err
+	}
+
+	if !verified {
+		fmt.Printf("[ERROR] Mission verification failed on canister\n")
+		return fmt.Errorf("mission verification failed on canister")
+	}
+
+	fmt.Printf("[DEBUG] Mission verified on canister: %v\n", verified)
+
+	// Step 2: Update status di DB
+	err = s.MissionTakenRepo.VerifyMission(mtID)
+	if err != nil {
+		fmt.Printf("[ERROR] VerifyMissionRepo error: %v\n", err)
+		return err
+	}
+
+	// Step 3: Mint NFT ke Motoko
 	nftID, err := s.MotokoClient.MintNFT(ctx, user.IIPrincipal, mt.MissionID, mission.AssetAmount)
 	if err != nil {
 		fmt.Printf("[ERROR] MintNFT error: %v\n", err)
 		return err
 	}
-	// Simpan mapping NFT ke user
+
+	fmt.Printf("[DEBUG] NFT minted successfully: %s\n", nftID)
+
+	// Step 4: Simpan mapping NFT ke user
 	userNFT := &model.UserNFT{
 		UserID: user.ID,
 		NFTID:  nftID,
@@ -83,7 +106,8 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 		fmt.Printf("[ERROR] CreateUserNFT error: %v\n", err)
 		return err
 	}
-	// Tambah point ke user
+
+	// Step 5: Tambah point ke user
 	if mission.Points > 0 {
 		// Reload user dari DB untuk dapat point terbaru
 		userLatest, err := s.UserRepo.GetUserByID(user.ID)
@@ -98,6 +122,8 @@ func (s *MissionTakenService) VerifyMission(mtID uint) error {
 		}
 		fmt.Printf("[DEBUG] User %d point updated: %d -> %d\n", user.ID, userLatest.Points, newPoints)
 	}
+
+	fmt.Printf("[DEBUG] Mission verification completed successfully\n")
 	return nil
 }
 
