@@ -94,14 +94,8 @@ func (h *MissionTakenHandler) GetUserNFTs(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
 		return
 	}
-	// Ambil principal user
-	user, err := h.MissionTakenService.UserRepo.GetUserByID(uint(userID))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-		return
-	}
-	ctx := c.Request.Context()
-	nfts, err := h.MissionTakenService.MotokoClient.GetUserNFTs(ctx, user.IIPrincipal)
+	// Ambil NFT yang dimiliki user dari DB (mapping lokal)
+	nfts, err := h.MissionTakenService.UserNFTRepo.GetNFTsByUserID(uint(userID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
