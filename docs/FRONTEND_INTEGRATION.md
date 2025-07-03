@@ -1,6 +1,6 @@
 # Frontend Integration Guide
 
-This guide provides comprehensive instructions for integrating frontend applications with the PeduliCarbon backend API.
+Panduan integrasi frontend dengan PeduliCarbon API. Platform ini menggunakan REST API dengan JSON responses dan email-based authentication.
 
 ## 🔗 Integration Overview
 
@@ -8,101 +8,24 @@ This guide provides comprehensive instructions for integrating frontend applicat
 graph TB
     subgraph "Frontend Application"
         UI[User Interface]
-        State[State Management]
-        Router[Routing]
-        Auth[Authentication]
         API[API Client]
     end
     
     subgraph "Backend API"
         REST[REST API]
-        WebSocket[WebSocket]
-        FileUpload[File Upload]
     end
     
     subgraph "External Services"
         ICP[Internet Computer]
-        Wallet[ICP Wallet]
-        Storage[File Storage]
     end
     
-    UI --> State
-    State --> API
+    UI --> API
     API --> REST
-    API --> WebSocket
-    API --> FileUpload
-    
-    Auth --> Wallet
-    Wallet --> ICP
-    
-    FileUpload --> Storage
+    REST --> ICP
     
     style UI fill:#e1f5fe
     style API fill:#f3e5f5
     style REST fill:#e8f5e8
-    style Wallet fill:#fff3e0
-```
-
-## 🏗️ Component Architecture
-
-```mermaid
-graph TB
-    subgraph "Pages"
-        Home[Home Page]
-        Login[Login Page]
-        Register[Register Page]
-        Missions[Missions Page]
-        Profile[Profile Page]
-        Wallet[Wallet Page]
-    end
-    
-    subgraph "Components"
-        Header[Header Component]
-        Footer[Footer Component]
-        MissionCard[Mission Card]
-        NFTCard[NFT Card]
-        RewardCard[Reward Card]
-        UploadProof[Proof Upload]
-    end
-    
-    subgraph "Services"
-        AuthService[Auth Service]
-        MissionService[Mission Service]
-        NFTService[NFT Service]
-        RewardService[Reward Service]
-        WalletService[Wallet Service]
-    end
-    
-    subgraph "State Management"
-        Store[Global Store]
-        AuthState[Auth State]
-        MissionState[Mission State]
-        NFTState[NFT State]
-    end
-    
-    Home --> Header
-    Login --> AuthService
-    Register --> AuthService
-    Missions --> MissionService
-    Profile --> AuthService
-    Wallet --> WalletService
-    
-    MissionCard --> MissionService
-    NFTCard --> NFTService
-    RewardCard --> RewardService
-    UploadProof --> MissionService
-    
-    AuthService --> AuthState
-    MissionService --> MissionState
-    NFTService --> NFTState
-    
-    AuthState --> Store
-    MissionState --> Store
-    NFTState --> Store
-    
-    style Home fill:#e8f5e8
-    style AuthService fill:#fff3e0
-    style Store fill:#f3e5f5
 ```
 
 ## 🔐 Authentication Flow
@@ -113,35 +36,25 @@ sequenceDiagram
     participant F as Frontend
     participant API as Backend API
     participant DB as Database
-    participant ICP as Internet Computer
     
     U->>F: Enter email & password
-    F->>API: POST /api/users/login
+    F->>API: POST /auth/login
     API->>DB: Validate credentials
     DB-->>API: User found
-    API->>API: Generate JWT token
-    API-->>F: {token, user_data}
-    F->>F: Store token in localStorage
-    F->>F: Update auth state
+    API-->>F: {user_data}
+    F->>F: Store user data
     F-->>U: Redirect to dashboard
-    
-    Note over F,API: Subsequent requests
-    F->>API: GET /api/users/profile
-    F->>F: Add Authorization header
-    API->>API: Validate JWT token
-    API-->>F: User profile data
 ```
 
-## 📡 API Integration Patterns
+## 📡 API Integration
 
-### 1. REST API Client Setup
+### 1. API Client Setup
 
 ```javascript
 // api/client.js
-class APIClient {
+class PeduliCarbonAPI {
   constructor(baseURL) {
-    this.baseURL = baseURL;
-    this.token = localStorage.getItem('token');
+    this.baseURL = baseURL || 'http://localhost:8080';
   }
 
   async request(endpoint, options = {}) {
@@ -149,7 +62,6 @@ class APIClient {
     const config = {
       headers: {
         'Content-Type': 'application/json',
-        ...(this.token && { Authorization: `Bearer ${this.token}` }),
         ...options.headers,
       },
       ...options,
@@ -167,809 +79,513 @@ class APIClient {
     }
   }
 
-  // Authentication methods
-  async login(email, password) {
-    return this.request('/api/users/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-  }
-
+  // Authentication
   async register(userData) {
-    return this.request('/api/users/register', {
+    return this.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   }
 
-  // Mission methods
+  async login(email, password) {
+    return this.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  }
+
+  // Missions
   async getMissions() {
-    return this.request('/api/missions');
+    return this.request('/missions');
   }
 
   async takeMission(missionId) {
-    return this.request(`/api/missions/${missionId}/take`, {
+    return this.request(`/missions/${missionId}/take`, {
       method: 'POST',
     });
   }
 
   async submitProof(missionId, proofData) {
-    return this.request(`/api/missions/${missionId}/submit-proof`, {
+    return this.request(`/missions/${missionId}/submit-proof`, {
       method: 'POST',
       body: JSON.stringify(proofData),
     });
   }
 
-  // NFT methods
-  async getNFTs() {
-    return this.request('/api/nfts');
+  // NFTs
+  async getUserNFTs(userId) {
+    return this.request(`/users/${userId}/nfts`);
   }
 
   async claimNFT(nftId) {
-    return this.request(`/api/nfts/${nftId}/claim`, {
+    return this.request(`/nfts/${nftId}/claim`, {
       method: 'POST',
     });
   }
 
-  // Reward methods
+  // Rewards
   async getRewardCatalog() {
-    return this.request('/api/rewards/catalog');
+    return this.request('/rewards/catalog');
   }
 
-  async redeemReward(rewardId) {
-    return this.request('/api/rewards/redeem', {
+  async redeemReward(catalogId) {
+    return this.request(`/rewards/catalog/${catalogId}/redeem`, {
       method: 'POST',
-      body: JSON.stringify({ reward_catalog_id: rewardId }),
     });
   }
 }
 ```
 
-### 2. State Management Integration
+### 2. User Registration & Login
 
 ```javascript
-// store/index.js
-class PeduliCarbonStore {
-  constructor() {
-    this.state = {
-      user: null,
-      missions: [],
-      nfts: [],
-      rewards: [],
-      loading: false,
-      error: null,
-    };
-    this.listeners = [];
-  }
+// components/Auth/Register.js
+import React, { useState } from 'react';
+import api from '../../services/api';
 
-  subscribe(listener) {
-    this.listeners.push(listener);
-    return () => {
-      this.listeners = this.listeners.filter(l => l !== listener);
-    };
-  }
+const Register = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  notify() {
-    this.listeners.forEach(listener => listener(this.state));
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-  setState(newState) {
-    this.state = { ...this.state, ...newState };
-    this.notify();
-  }
-
-  // Actions
-  async login(email, password) {
-    this.setState({ loading: true, error: null });
     try {
-      const response = await apiClient.login(email, password);
-      this.setState({ user: response.user, loading: false });
-      localStorage.setItem('token', response.token);
+      const response = await api.register(formData);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      window.location.href = '/dashboard';
     } catch (error) {
-      this.setState({ error: error.message, loading: false });
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  async loadMissions() {
-    this.setState({ loading: true });
-    try {
-      const missions = await apiClient.getMissions();
-      this.setState({ missions, loading: false });
-    } catch (error) {
-      this.setState({ error: error.message, loading: false });
-    }
-  }
-
-  async takeMission(missionId) {
-    try {
-      await apiClient.takeMission(missionId);
-      // Refresh missions to update status
-      await this.loadMissions();
-    } catch (error) {
-      this.setState({ error: error.message });
-    }
-  }
-}
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Full Name"
+        value={formData.name}
+        onChange={(e) => setFormData({...formData, name: e.target.value})}
+        required
+      />
+      <input
+        type="email"
+        placeholder="Email"
+        value={formData.email}
+        onChange={(e) => setFormData({...formData, email: e.target.value})}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={formData.password}
+        onChange={(e) => setFormData({...formData, password: e.target.value})}
+        required
+      />
+      <button type="submit" disabled={loading}>
+        {loading ? 'Registering...' : 'Register'}
+      </button>
+      {error && <div className="error">{error}</div>}
+    </form>
+  );
+};
 ```
 
-## 🎯 Mission Integration
-
-### Mission List Component
+### 3. Mission Management
 
 ```javascript
-// components/MissionList.js
-class MissionList extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      missions: [],
-      loading: false,
-      error: null,
-    };
-  }
+// components/Missions/MissionList.js
+import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
 
-  async componentDidMount() {
-    await this.loadMissions();
-  }
+const MissionList = () => {
+  const [missions, setMissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  async loadMissions() {
-    this.setState({ loading: true });
+  useEffect(() => {
+    loadMissions();
+  }, []);
+
+  const loadMissions = async () => {
     try {
-      const missions = await apiClient.getMissions();
-      this.setState({ missions, loading: false });
+      const response = await api.getMissions();
+      setMissions(response);
     } catch (error) {
-      this.setState({ error: error.message, loading: false });
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  async handleTakeMission(missionId) {
+  const handleTakeMission = async (missionId) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    
     try {
-      await apiClient.takeMission(missionId);
-      // Show success message and refresh
-      this.showNotification('Mission taken successfully!', 'success');
-      await this.loadMissions();
+      await api.takeMission(missionId);
+      alert('Mission taken successfully!');
+      loadMissions(); // Refresh missions
     } catch (error) {
-      this.showNotification(error.message, 'error');
+      alert(`Error: ${error.message}`);
     }
-  }
+  };
 
-  render() {
-    const { missions, loading, error } = this.state;
+  if (loading) return <div>Loading missions...</div>;
+  if (error) return <div>Error: {error}</div>;
 
-    if (loading) return <LoadingSpinner />;
-    if (error) return <ErrorMessage message={error} />;
-
-    return (
-      <div className="mission-list">
-        <h2>Available Missions</h2>
-        <div className="missions-grid">
-          {missions.map(mission => (
-            <MissionCard
-              key={mission.id}
-              mission={mission}
-              onTakeMission={() => this.handleTakeMission(mission.id)}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-}
-```
-
-### Mission Card Component
-
-```javascript
-// components/MissionCard.js
-class MissionCard extends Component {
-  render() {
-    const { mission, onTakeMission } = this.props;
-    const { title, description, carbon_offset, points_reward, status } = mission;
-
-    return (
-      <div className="mission-card">
-        <div className="mission-header">
-          <h3>{title}</h3>
-          <span className={`status ${status}`}>{status}</span>
-        </div>
-        
-        <div className="mission-content">
-          <p>{description}</p>
-          
-          <div className="mission-rewards">
-            <div className="reward-item">
-              <span className="icon">🌱</span>
-              <span>{carbon_offset} kg CO2</span>
-            </div>
-            <div className="reward-item">
-              <span className="icon">🏆</span>
-              <span>{points_reward} points</span>
-            </div>
+  return (
+    <div className="mission-list">
+      <h2>Available Missions</h2>
+      {missions.map(mission => (
+        <div key={mission.id} className="mission-card">
+          <h3>{mission.title}</h3>
+          <p>{mission.description}</p>
+          <div className="mission-details">
+            <span>Points: {mission.points}</span>
+            <span>Asset: {mission.asset_amount} {mission.asset_type}</span>
+            <span>Verification: {mission.verification_type}</span>
           </div>
+          <button onClick={() => handleTakeMission(mission.id)}>
+            Take Mission
+          </button>
         </div>
-        
-        <div className="mission-actions">
-          {status === 'available' && (
-            <button 
-              className="btn btn-primary"
-              onClick={onTakeMission}
-            >
-              Take Mission
+      ))}
+    </div>
+  );
+};
+```
+
+### 4. Proof Submission
+
+```javascript
+// components/Missions/ProofSubmission.js
+import React, { useState } from 'react';
+import api from '../../services/api';
+
+const ProofSubmission = ({ missionId, onSuccess }) => {
+  const [proofData, setProofData] = useState({
+    proof_url: '',
+    gps: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      await api.submitProof(missionId, proofData);
+      alert('Proof submitted successfully!');
+      onSuccess && onSuccess();
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="url"
+        placeholder="Proof URL (image/document)"
+        value={proofData.proof_url}
+        onChange={(e) => setProofData({...proofData, proof_url: e.target.value})}
+        required
+      />
+      <input
+        type="text"
+        placeholder="GPS Coordinates (e.g., -6.2088,106.8456)"
+        value={proofData.gps}
+        onChange={(e) => setProofData({...proofData, gps: e.target.value})}
+        required
+      />
+      <button type="submit" disabled={loading}>
+        {loading ? 'Submitting...' : 'Submit Proof'}
+      </button>
+      {error && <div className="error">{error}</div>}
+    </form>
+  );
+};
+```
+
+### 5. NFT Management
+
+```javascript
+// components/NFTs/NFTList.js
+import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
+
+const NFTList = () => {
+  const [nfts, setNfts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadNFTs();
+  }, []);
+
+  const loadNFTs = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    try {
+      const response = await api.getUserNFTs(user.id);
+      setNfts(response.nfts);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClaimNFT = async (nftId) => {
+    try {
+      await api.claimNFT(nftId);
+      alert('NFT claimed successfully!');
+      loadNFTs(); // Refresh NFT list
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  if (loading) return <div>Loading NFTs...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <div className="nft-list">
+      <h2>My NFTs</h2>
+      {nfts.map(nft => (
+        <div key={nft.id} className="nft-card">
+          <h3>NFT ID: {nft.nft_id}</h3>
+          <p>Status: {nft.status}</p>
+          <p>Created: {new Date(nft.created_at).toLocaleDateString()}</p>
+          
+          {nft.status === 'owned' && (
+            <button onClick={() => handleClaimNFT(nft.nft_id)}>
+              Claim NFT
             </button>
           )}
           
-          {status === 'taken' && (
-            <button 
-              className="btn btn-secondary"
-              onClick={() => this.props.onSubmitProof(mission.id)}
-            >
-              Submit Proof
+          {nft.status === 'claimed' && (
+            <div>
+              <p>Claimed: {new Date(nft.claimed_at).toLocaleDateString()}</p>
+              <a href={nft.certificate_url} target="_blank" rel="noopener">
+                View Certificate
+              </a>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+```
+
+### 6. Reward System
+
+```javascript
+// components/Rewards/RewardCatalog.js
+import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
+
+const RewardCatalog = () => {
+  const [rewards, setRewards] = useState([]);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadUserAndRewards();
+  }, []);
+
+  const loadUserAndRewards = async () => {
+    const userData = JSON.parse(localStorage.getItem('user'));
+    setUser(userData);
+
+    try {
+      const response = await api.getRewardCatalog();
+      setRewards(response);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRedeemReward = async (catalogId) => {
+    try {
+      await api.redeemReward(catalogId);
+      alert('Reward redeemed successfully!');
+      
+      // Refresh user data to update points
+      const updatedUser = await api.getUserProfile(user.id);
+      setUser(updatedUser.user);
+      localStorage.setItem('user', JSON.stringify(updatedUser.user));
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  if (loading) return <div>Loading rewards...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <div className="reward-catalog">
+      <div className="user-points">
+        <h3>Your Points: {user?.points || 0}</h3>
+      </div>
+      
+      {rewards.map(reward => (
+        <div key={reward.id} className="reward-card">
+          <h3>{reward.name}</h3>
+          <p>{reward.description}</p>
+          <div className="reward-details">
+            <span>Points Required: {reward.points_required}</span>
+            <span>Type: {reward.reward_type}</span>
+          </div>
+          
+          {user && user.points >= reward.points_required ? (
+            <button onClick={() => handleRedeemReward(reward.id)}>
+              Redeem Reward
+            </button>
+          ) : (
+            <button disabled>
+              {user && user.points < reward.points_required 
+                ? 'Insufficient Points' 
+                : 'Not Available'}
             </button>
           )}
-          
-          {status === 'completed' && (
-            <span className="completed-badge">✅ Completed</span>
-          )}
         </div>
-      </div>
-    );
-  }
-}
-```
-
-## 🎨 NFT Integration
-
-### NFT Gallery Component
-
-```javascript
-// components/NFTGallery.js
-class NFTGallery extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      nfts: [],
-      loading: false,
-      error: null,
-    };
-  }
-
-  async componentDidMount() {
-    await this.loadNFTs();
-  }
-
-  async loadNFTs() {
-    this.setState({ loading: true });
-    try {
-      const nfts = await apiClient.getNFTs();
-      this.setState({ nfts, loading: false });
-    } catch (error) {
-      this.setState({ error: error.message, loading: false });
-    }
-  }
-
-  async handleClaimNFT(nftId) {
-    try {
-      await apiClient.claimNFT(nftId);
-      this.showNotification('NFT claimed successfully!', 'success');
-      await this.loadNFTs();
-    } catch (error) {
-      this.showNotification(error.message, 'error');
-    }
-  }
-
-  render() {
-    const { nfts, loading, error } = this.state;
-
-    if (loading) return <LoadingSpinner />;
-    if (error) return <ErrorMessage message={error} />;
-
-    return (
-      <div className="nft-gallery">
-        <h2>My NFTs</h2>
-        <div className="nfts-grid">
-          {nfts.map(nft => (
-            <NFTCard
-              key={nft.id}
-              nft={nft}
-              onClaimNFT={() => this.handleClaimNFT(nft.id)}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-}
-```
-
-## 🏆 Reward Integration
-
-### Reward Catalog Component
-
-```javascript
-// components/RewardCatalog.js
-class RewardCatalog extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      rewards: [],
-      userPoints: 0,
-      loading: false,
-      error: null,
-    };
-  }
-
-  async componentDidMount() {
-    await Promise.all([
-      this.loadRewards(),
-      this.loadUserPoints(),
-    ]);
-  }
-
-  async loadRewards() {
-    this.setState({ loading: true });
-    try {
-      const rewards = await apiClient.getRewardCatalog();
-      this.setState({ rewards, loading: false });
-    } catch (error) {
-      this.setState({ error: error.message, loading: false });
-    }
-  }
-
-  async loadUserPoints() {
-    try {
-      const profile = await apiClient.getProfile();
-      this.setState({ userPoints: profile.points });
-    } catch (error) {
-      console.error('Failed to load user points:', error);
-    }
-  }
-
-  async handleRedeemReward(rewardId) {
-    try {
-      await apiClient.redeemReward(rewardId);
-      this.showNotification('Reward redeemed successfully!', 'success');
-      await this.loadUserPoints();
-    } catch (error) {
-      this.showNotification(error.message, 'error');
-    }
-  }
-
-  render() {
-    const { rewards, userPoints, loading, error } = this.state;
-
-    if (loading) return <LoadingSpinner />;
-    if (error) return <ErrorMessage message={error} />;
-
-    return (
-      <div className="reward-catalog">
-        <div className="points-display">
-          <h2>Reward Catalog</h2>
-          <div className="user-points">
-            <span className="icon">🏆</span>
-            <span>{userPoints} points available</span>
-          </div>
-        </div>
-        
-        <div className="rewards-grid">
-          {rewards.map(reward => (
-            <RewardCard
-              key={reward.id}
-              reward={reward}
-              userPoints={userPoints}
-              onRedeem={() => this.handleRedeemReward(reward.id)}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-}
-```
-
-## 📱 Mobile Integration
-
-### Responsive Design Patterns
-
-```css
-/* styles/responsive.css */
-.mission-card {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-}
-
-.mission-card:hover {
-  transform: translateY(-2px);
-}
-
-/* Mobile-first approach */
-@media (max-width: 768px) {
-  .missions-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .mission-card {
-    margin-bottom: 1rem;
-  }
-  
-  .mission-actions {
-    flex-direction: column;
-  }
-  
-  .btn {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-}
-
-/* Tablet */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .missions-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Desktop */
-@media (min-width: 1025px) {
-  .missions-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-```
-
-## 🔄 Real-time Updates
-
-### WebSocket Integration
-
-```javascript
-// services/websocket.js
-class WebSocketService {
-  constructor() {
-    this.ws = null;
-    this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 5;
-  }
-
-  connect(token) {
-    const wsUrl = `${process.env.REACT_APP_WS_URL}?token=${token}`;
-    
-    this.ws = new WebSocket(wsUrl);
-    
-    this.ws.onopen = () => {
-      console.log('WebSocket connected');
-      this.reconnectAttempts = 0;
-    };
-    
-    this.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      this.handleMessage(data);
-    };
-    
-    this.ws.onclose = () => {
-      console.log('WebSocket disconnected');
-      this.attemptReconnect();
-    };
-    
-    this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-  }
-
-  handleMessage(data) {
-    switch (data.type) {
-      case 'mission_completed':
-        this.notifyMissionCompleted(data.payload);
-        break;
-      case 'nft_minted':
-        this.notifyNFTMinted(data.payload);
-        break;
-      case 'points_updated':
-        this.notifyPointsUpdated(data.payload);
-        break;
-      default:
-        console.log('Unknown message type:', data.type);
-    }
-  }
-
-  attemptReconnect() {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      setTimeout(() => {
-        this.connect(localStorage.getItem('token'));
-      }, 1000 * this.reconnectAttempts);
-    }
-  }
-
-  disconnect() {
-    if (this.ws) {
-      this.ws.close();
-    }
-  }
-}
+      ))}
+    </div>
+  );
+};
 ```
 
 ## 🎨 UI/UX Best Practices
 
 ### Loading States
-
 ```javascript
-// components/LoadingSpinner.js
-class LoadingSpinner extends Component {
-  render() {
-    return (
-      <div className="loading-spinner">
-        <div className="spinner"></div>
-        <p>Loading...</p>
-      </div>
-    );
-  }
-}
-
-// components/SkeletonLoader.js
-class SkeletonLoader extends Component {
-  render() {
-    return (
-      <div className="skeleton-loader">
-        <div className="skeleton-card">
-          <div className="skeleton-title"></div>
-          <div className="skeleton-content">
-            <div className="skeleton-line"></div>
-            <div className="skeleton-line"></div>
-            <div className="skeleton-line"></div>
-          </div>
-          <div className="skeleton-button"></div>
-        </div>
-      </div>
-    );
-  }
-}
+const LoadingSpinner = () => (
+  <div className="loading-spinner">
+    <div className="spinner"></div>
+    <p>Loading...</p>
+  </div>
+);
 ```
 
 ### Error Handling
-
 ```javascript
-// components/ErrorMessage.js
-class ErrorMessage extends Component {
-  render() {
-    const { message, onRetry } = this.props;
-    
-    return (
-      <div className="error-message">
-        <div className="error-icon">⚠️</div>
-        <h3>Something went wrong</h3>
-        <p>{message}</p>
-        {onRetry && (
-          <button className="btn btn-primary" onClick={onRetry}>
-            Try Again
-          </button>
-        )}
-      </div>
-    );
-  }
-}
+const ErrorMessage = ({ message, onRetry }) => (
+  <div className="error-message">
+    <h3>Something went wrong</h3>
+    <p>{message}</p>
+    {onRetry && (
+      <button onClick={onRetry}>Try Again</button>
+    )}
+  </div>
+);
 ```
 
-### Success Notifications
-
+### Form Validation
 ```javascript
-// components/Notification.js
-class Notification extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      visible: false,
-      message: '',
-      type: 'info',
-    };
+const validateMissionProof = (proofData) => {
+  const errors = {};
+
+  if (!proofData.proof_url) {
+    errors.proof_url = 'Proof URL is required';
   }
 
-  show(message, type = 'info') {
-    this.setState({ visible: true, message, type });
-    setTimeout(() => {
-      this.setState({ visible: false });
-    }, 3000);
+  if (!proofData.gps) {
+    errors.gps = 'GPS coordinates are required';
   }
 
-  render() {
-    const { visible, message, type } = this.state;
-    
-    if (!visible) return null;
-    
-    return (
-      <div className={`notification notification-${type}`}>
-        <span className="notification-message">{message}</span>
-        <button 
-          className="notification-close"
-          onClick={() => this.setState({ visible: false })}
-        >
-          ×
-        </button>
-      </div>
-    );
-  }
-}
-```
-
-## 🧪 Testing Integration
-
-### API Mocking
-
-```javascript
-// tests/mocks/apiMock.js
-export const mockAPI = {
-  login: jest.fn().mockResolvedValue({
-    token: 'mock-token',
-    user: { id: '1', email: 'test@example.com', points: 100 }
-  }),
-  
-  getMissions: jest.fn().mockResolvedValue([
-    {
-      id: '1',
-      title: 'Plant a Tree',
-      description: 'Plant a tree in your backyard',
-      carbon_offset: 50,
-      points_reward: 100,
-      status: 'available'
-    }
-  ]),
-  
-  takeMission: jest.fn().mockResolvedValue({ success: true }),
-  
-  submitProof: jest.fn().mockResolvedValue({ success: true }),
-  
-  getNFTs: jest.fn().mockResolvedValue([
-    {
-      id: '1',
-      nft_id: 'nft-123',
-      status: 'minted',
-      mission: { title: 'Plant a Tree' }
-    }
-  ]),
-  
-  claimNFT: jest.fn().mockResolvedValue({ success: true }),
-  
-  getRewardCatalog: jest.fn().mockResolvedValue([
-    {
-      id: '1',
-      name: 'Eco-friendly Water Bottle',
-      description: 'Reusable water bottle',
-      points_required: 500,
-      reward_type: 'physical'
-    }
-  ]),
-  
-  redeemReward: jest.fn().mockResolvedValue({ success: true })
+  return errors;
 };
 ```
 
-### Component Testing
+## 🧪 Testing
 
+### API Mocking
 ```javascript
-// tests/components/MissionList.test.js
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import MissionList from '../../components/MissionList';
-import { mockAPI } from '../mocks/apiMock';
+// mocks/apiMock.js
+export const mockAPI = {
+  register: async (userData) => ({
+    message: 'User registered successfully',
+    user: {
+      id: 1,
+      name: userData.name,
+      email: userData.email,
+      points: 0,
+    },
+  }),
 
-jest.mock('../../services/api', () => mockAPI);
+  getMissions: async () => [
+    {
+      id: 1,
+      title: 'Plant a Tree',
+      description: 'Plant a tree in your backyard',
+      points: 100,
+      asset_type: 'NFT',
+      asset_amount: 1,
+      verification_type: 'photo',
+    },
+  ],
 
-describe('MissionList', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('renders missions correctly', async () => {
-    render(<MissionList />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Plant a Tree')).toBeInTheDocument();
-    });
-  });
-
-  test('handles take mission action', async () => {
-    render(<MissionList />);
-    
-    await waitFor(() => {
-      const takeButton = screen.getByText('Take Mission');
-      fireEvent.click(takeButton);
-    });
-    
-    expect(mockAPI.takeMission).toHaveBeenCalledWith('1');
-  });
-
-  test('handles errors gracefully', async () => {
-    mockAPI.getMissions.mockRejectedValue(new Error('API Error'));
-    
-    render(<MissionList />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    });
-  });
-});
+  // Add more mock functions as needed
+};
 ```
 
-## 📊 Performance Optimization
+## 📱 Mobile Responsive
 
-### Code Splitting
-
-```javascript
-// App.js
-import { lazy, Suspense } from 'react';
-
-const MissionList = lazy(() => import('./components/MissionList'));
-const NFTGallery = lazy(() => import('./components/NFTGallery'));
-const RewardCatalog = lazy(() => import('./components/RewardCatalog'));
-
-function App() {
-  return (
-    <div className="app">
-      <Suspense fallback={<LoadingSpinner />}>
-        <Switch>
-          <Route path="/missions" component={MissionList} />
-          <Route path="/nfts" component={NFTGallery} />
-          <Route path="/rewards" component={RewardCatalog} />
-        </Switch>
-      </Suspense>
-    </div>
-  );
+```css
+/* Mobile-first approach */
+.mission-card {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-```
 
-### Caching Strategy
-
-```javascript
-// services/cache.js
-class CacheService {
-  constructor() {
-    this.cache = new Map();
-    this.ttl = new Map();
-  }
-
-  set(key, value, ttlMs = 5 * 60 * 1000) { // 5 minutes default
-    this.cache.set(key, value);
-    this.ttl.set(key, Date.now() + ttlMs);
-  }
-
-  get(key) {
-    if (!this.cache.has(key)) return null;
-    
-    const expiry = this.ttl.get(key);
-    if (Date.now() > expiry) {
-      this.delete(key);
-      return null;
-    }
-    
-    return this.cache.get(key);
-  }
-
-  delete(key) {
-    this.cache.delete(key);
-    this.ttl.delete(key);
-  }
-
-  clear() {
-    this.cache.clear();
-    this.ttl.clear();
+@media (min-width: 768px) {
+  .mission-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
 }
 
-// Usage in API client
-const cache = new CacheService();
-
-class CachedAPIClient extends APIClient {
-  async getMissions() {
-    const cached = cache.get('missions');
-    if (cached) return cached;
-    
-    const missions = await super.getMissions();
-    cache.set('missions', missions);
-    return missions;
+@media (min-width: 1024px) {
+  .mission-list {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 ```
 
-This comprehensive frontend integration guide provides visual diagrams, code examples, and best practices for integrating with the PeduliCarbon backend API. The diagrams help developers understand the architecture and flow, while the code examples provide practical implementation guidance. 
+## 📋 Deployment Checklist
+
+- [ ] Update API base URL for production
+- [ ] Configure CORS settings
+- [ ] Set up error monitoring
+- [ ] Add loading states for all API calls
+- [ ] Test all user flows end-to-end
+- [ ] Optimize bundle size
+- [ ] Set up analytics tracking
+
+## 🆘 Support
+
+Untuk bantuan tambahan:
+- API Documentation: `docs/api_openapi.yaml`
+- GitHub Issues: [Repository Issues](https://github.com/your-repo/pedulicarbon/issues)
+- Email: support@pedulicarbon.com 
