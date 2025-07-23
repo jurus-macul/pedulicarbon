@@ -1,0 +1,224 @@
+{
+  "common": {
+    "login": "",
+    "missions": "",
+    "nftGallery": "",
+    "register": "",
+    "rewards": "",
+    "wallet": ""
+  },
+  "dashboard": {
+    "browseMissions": "",
+    "carbonFootprintTrend": "",
+    "carbonOffset": "",
+    "completed": "",
+    "completedMissions": "",
+    "continueJourney": "",
+    "inProgress": "",
+    "missionProgress": "",
+    "noMissionsYet": "",
+    "quickActions": "",
+    "recentMissions": "",
+    "recentNFTs": "",
+    "redeemRewards": "",
+    "startFirstMission": "",
+    "totalNFTs": "",
+    "totalPoints": "",
+    "viewAll": "",
+    "viewWallet": "",
+    "waiting": "",
+    "welcomeBack": ""
+  },
+  "home": {
+    "cta": {
+      "button": "",
+      "subtitle": "",
+      "title": ""
+    },
+    "features": {
+      "missions": {
+        "description": "",
+        "title": ""
+      },
+      "nft": {
+        "description": "",
+        "title": ""
+      },
+      "points": {
+        "description": "",
+        "title": ""
+      },
+      "subtitle": "",
+      "title": "",
+      "wallet": {
+        "description": "",
+        "title": ""
+      }
+    },
+    "footer": {
+      "copyright": "",
+      "description": "",
+      "legal": {
+        "cookiePolicy": "",
+        "privacyPolicy": "",
+        "termsOfService": "",
+        "title": ""
+      },
+      "platform": {
+        "title": ""
+      },
+      "support": {
+        "contactUs": "",
+        "faq": "",
+        "helpCenter": "",
+        "title": ""
+      }
+    },
+    "hero": {
+      "ctaPrimary": "",
+      "ctaSecondary": "",
+      "highlight": "",
+      "subtitle": "",
+      "title": ""
+    },
+    "stats": {
+      "activeUsers": "",
+      "carbonOffset": "",
+      "completedMissions": "",
+      "nftsMinted": ""
+    }
+  },
+  "missions": {
+    "allDifficulty": "",
+    "allStatus": "",
+    "available": "",
+    "community": "",
+    "communityDesc": "",
+    "defaultDuration": "",
+    "duration": "",
+    "easy": "",
+    "ecoFriendly": "",
+    "ecoFriendlyDesc": "",
+    "flexibleLocation": "",
+    "hard": "",
+    "loading": "",
+    "medium": "",
+    "missionCategories": "",
+    "noMissionsFound": "",
+    "points": "",
+    "processing": "",
+    "recycling": "",
+    "recyclingDesc": "",
+    "resetFilter": "",
+    "reward": "",
+    "searchPlaceholder": "",
+    "subtitle": "",
+    "takeMission": "",
+    "taken": "",
+    "title": "",
+    "tryAdjustingFilters": "",
+    "unknown": "",
+    "viewDetails": ""
+  },
+  "navigation": {
+    "dashboard": "",
+    "logout": "",
+    "missions": "",
+    "nftGallery": "",
+    "profile": "",
+    "rewards": "",
+    "wallet": ""
+  },
+  "nftGallery": {
+    "allRarities": "",
+    "claimed": "",
+    "claiming": "",
+    "claimNFT": "",
+    "collected": "",
+    "common": "",
+    "completeMissionsToEarn": "",
+    "epic": "",
+    "legendary": "",
+    "loading": "",
+    "minted": "",
+    "noNFTsFound": "",
+    "rare": "",
+    "searchPlaceholder": "",
+    "subtitle": "",
+    "title": ""
+  },
+  "profile": {
+    "bio": "",
+    "bioPlaceholder": "",
+    "cancel": "",
+    "completedMissions": "",
+    "edit": "",
+    "email": "",
+    "emailPlaceholder": "",
+    "language": "",
+    "location": "",
+    "locationPlaceholder": "",
+    "logout": "",
+    "memberSince": "",
+    "namePlaceholder": "",
+    "noBio": "",
+    "notifications": "",
+    "notSpecified": "",
+    "personalInfo": "",
+    "privacy": "",
+    "redeemedRewards": "",
+    "save": "",
+    "saving": "",
+    "settings": "",
+    "statistics": "",
+    "subtitle": "",
+    "theme": "",
+    "title": "",
+    "totalNFTs": "",
+    "totalPoints": ""
+  },
+  "rewards": {
+    "allCategories": "",
+    "availablePoints": "",
+    "digital": "",
+    "environmental": "",
+    "insufficientPoints": "",
+    "noRewardsFound": "",
+    "other": "",
+    "physical": "",
+    "pointsRequired": "",
+    "popular": "",
+    "redeem": "",
+    "redeeming": "",
+    "resetFilter": "",
+    "searchPlaceholder": "",
+    "subtitle": "",
+    "title": "",
+    "tryAdjustingFilters": "",
+    "unavailable": "",
+    "voucher": "",
+    "yourPoints": ""
+  },
+  "wallet": {
+    "addPaymentMethod": "",
+    "amount": "",
+    "availableBalance": "",
+    "balance": "",
+    "category": "",
+    "date": "",
+    "deposit": "",
+    "lifetimeEarnings": "",
+    "lifetimeSpending": "",
+    "quickActions": "",
+    "recentTransactions": "",
+    "status": "",
+    "subtitle": "",
+    "title": "",
+    "totalEarned": "",
+    "totalSpent": "",
+    "transactionDetails": "",
+    "type": "",
+    "viewAll": "",
+    "withdraw": ""
+  }
+}

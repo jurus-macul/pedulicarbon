@@ -1,0 +1,225 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "missions": "Missions",
+    "nftGallery": "NFT Gallery",
+    "rewards": "Rewards",
+    "wallet": "Wallet",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register"
+  },
+  "dashboard": {
+    "welcomeBack": "Welcome back",
+    "continueJourney": "Continue your environmental action journey today",
+    "totalPoints": "Total Points",
+    "completedMissions": "Completed Missions",
+    "totalNFTs": "Total NFTs",
+    "carbonOffset": "Carbon Offset",
+    "carbonFootprintTrend": "Carbon Footprint Trend",
+    "missionProgress": "Mission Progress",
+    "recentMissions": "Recent Missions",
+    "recentNFTs": "Recent NFTs",
+    "viewAll": "View All",
+    "noMissionsYet": "No missions taken yet",
+    "startFirstMission": "Start your first mission",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "waiting": "Waiting"
+  },
+  "missions": {
+    "title": "Missions",
+    "subtitle": "Choose and complete missions to earn points and NFTs",
+    "searchPlaceholder": "Search missions...",
+    "allStatus": "All Status",
+    "available": "Available",
+    "taken": "Taken",
+    "completed": "Completed",
+    "allDifficulty": "All Difficulty",
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard",
+    "unknown": "Unknown",
+    "points": "Points",
+    "takeMission": "Take Mission",
+    "processing": "Processing...",
+    "noMissionsFound": "No missions found",
+    "tryAdjustingFilters": "Try adjusting your filters or search terms",
+    "resetFilter": "Reset Filter",
+    "missionCategories": "Mission Categories",
+    "ecoFriendly": "Eco-Friendly",
+    "ecoFriendlyDesc": "Missions focused on eco-friendly actions",
+    "recycling": "Recycling",
+    "recyclingDesc": "Missions related to recycling and waste management",
+    "community": "Community",
+    "communityDesc": "Community-based environmental initiatives",
+    "flexibleLocation": "Flexible Location",
+    "duration": "Duration",
+    "defaultDuration": "Flexible",
+    "reward": "Reward",
+    "viewDetails": "View Details",
+    "loading": "Loading missions..."
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your account and preferences",
+    "personalInfo": "Personal Information",
+    "accountSettings": "Account Settings",
+    "preferences": "Preferences",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "security": "Security",
+    "saveChanges": "Save Changes",
+    "changesSaved": "Changes saved successfully",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "logout": "Logout",
+    "totalPoints": "Total Points",
+    "completedMissions": "Completed Missions",
+    "totalNFTs": "Total NFTs",
+    "redeemedRewards": "Redeemed Rewards",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell us about yourself...",
+    "email": "Email",
+    "emailPlaceholder": "Your email address",
+    "location": "Location",
+    "locationPlaceholder": "Your location",
+    "memberSince": "Member since",
+    "noBio": "No bio provided.",
+    "notSpecified": "Not specified.",
+    "settings": "Settings",
+    "statistics": "Statistics"
+  },
+  "wallet": {
+    "title": "Wallet",
+    "subtitle": "Manage your carbon credits and transactions",
+    "balance": "Balance",
+    "availableBalance": "Available Balance",
+    "totalEarned": "Total Earned",
+    "totalSpent": "Total Spent",
+    "lifetimeEarnings": "Lifetime earnings",
+    "lifetimeSpending": "Lifetime spending",
+    "quickActions": "Quick Actions",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "addPaymentMethod": "Add Payment Method",
+    "recentTransactions": "Recent Transactions",
+    "viewAll": "View All",
+    "transactionDetails": "Transaction Details",
+    "amount": "Amount",
+    "type": "Type",
+    "category": "Category",
+    "status": "Status",
+    "date": "Date",
+    "credit": "Credit",
+    "debit": "Debit"
+  },
+  "rewards": {
+    "title": "Rewards",
+    "subtitle": "Redeem your points for exciting rewards",
+    "availablePoints": "Available Points",
+    "redeem": "Redeem",
+    "redeeming": "Redeeming...",
+    "redeemSuccess": "Reward redeemed successfully",
+    "insufficientPoints": "Insufficient points",
+    "pointsRequired": "Points Required",
+    "yourPoints": "Your Points",
+    "unavailable": "Unavailable"
+  },
+  "nftGallery": {
+    "title": "NFT Gallery",
+    "subtitle": "Your collection of environmental achievement NFTs",
+    "rarity": "Rarity",
+    "common": "Common",
+    "rare": "Rare",
+    "epic": "Epic",
+    "legendary": "Legendary",
+    "minted": "Minted",
+    "claimNFT": "Claim NFT",
+    "claiming": "Claiming...",
+    "owned": "Owned",
+    "claimed": "Claimed",
+    "collected": "Collected",
+    "allRarities": "All Rarities",
+    "loading": "Loading NFTs...",
+    "noNFTsFound": "No NFTs found",
+    "completeMissionsToEarn": "Complete missions to earn NFTs",
+    "searchPlaceholder": "Search NFTs..."
+  },
+  "common": {
+    "login": "Login",
+    "register": "Register",
+    "missions": "Missions",
+    "nftGallery": "NFT Gallery",
+    "rewards": "Rewards",
+    "wallet": "Wallet"
+  },
+  "language": {
+    "english": "English",
+    "indonesian": "Indonesian",
+    "selectLanguage": "Select Language"
+  },
+  "home": {
+    "hero": {
+      "title": "Save the Earth with",
+      "highlight": "Carbon Offset",
+      "subtitle": "A carbon offset platform that gamifies environmental actions with NFTs and points on the Internet Computer blockchain.",
+      "ctaPrimary": "Get Started",
+      "ctaSecondary": "Already have an account?"
+    },
+    "stats": {
+      "activeUsers": "Active Users",
+      "completedMissions": "Missions Completed",
+      "carbonOffset": "Carbon Offset",
+      "nftsMinted": "NFTs Minted"
+    },
+    "features": {
+      "title": "Key Features",
+      "subtitle": "A complete platform for sustainable environmental action",
+      "missions": {
+        "title": "Carbon Missions",
+        "description": "Complete environmental challenges and earn points for rewards."
+      },
+      "nft": {
+        "title": "NFT Rewards",
+        "description": "Earn unique NFTs for every mission you complete."
+      },
+      "points": {
+        "title": "Point System",
+        "description": "Collect points and exchange them for exciting rewards."
+      },
+      "wallet": {
+        "title": "Digital Wallet",
+        "description": "Manage carbon credits and transactions securely."
+      }
+    },
+    "cta": {
+      "title": "Join the carboncare Movement",
+      "subtitle": "Start your environmental action today and earn exciting rewards",
+      "button": "Sign Up Free"
+    },
+    "footer": {
+      "description": "A carbon offset platform that gamifies environmental actions with NFTs and points.",
+      "platform": {
+        "title": "Platform"
+      },
+      "support": {
+        "title": "Support",
+        "helpCenter": "Help Center",
+        "contactUs": "Contact Us",
+        "faq": "FAQ"
+      },
+      "legal": {
+        "title": "Legal",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service",
+        "cookiePolicy": "Cookie Policy"
+      },
+      "copyright": "All rights reserved."
+    }
+  }
+} 
